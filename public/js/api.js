@@ -26,6 +26,20 @@
     });
   }
 
+  /* 服务器支持哪种推送：ws / sse / poll
+     Cloudflare Pages 版只有轮询（长连接在国内不稳，轮询反而更可靠） */
+  var TRANSPORT = null;
+  function detectTransport() {
+    if (TRANSPORT) return Promise.resolve(TRANSPORT);
+    return request('/api/health').then(function (h) {
+      TRANSPORT = (h && h.transport) || 'auto';
+      return TRANSPORT;
+    }).catch(function () {
+      TRANSPORT = 'auto';
+      return TRANSPORT;
+    });
+  }
+
   /* 一次订阅：返回 { close() }，与旧的 EventSource 用法兼容 */
   function openStream(code, role, handlers) {
     handlers = handlers || {};
@@ -33,6 +47,7 @@
 
     var ctl = { closed: false };
     var ws = null, es = null, poll = null, reconnectTimer = null, wsOpenTimer = null;
+    var pollMs = 1500;
     var backoff = 600;
     var lastWsMsg = 0;
     var status = null;
@@ -48,7 +63,7 @@
       else if (event === 'presence' && handlers.onPresence) handlers.onPresence(data);
     }
 
-    /* ---- 轮询兜底 ---- */
+    /* ---- 轮询兜底（也是 Pages 版的主力） ---- */
     function startPoll() {
       if (poll || ctl.closed) return;
       poll = setInterval(function () {
@@ -58,8 +73,15 @@
           handle('state', p);
           if (p.presence) handle('presence', p.presence);
           setStatus('online');
-        }).catch(function () { /* 继续等 */ });
-      }, 2500);
+        }).catch(function () { setStatus('offline'); });
+      }, pollMs);
+      /* 立刻拉一次，避免开局空窗 */
+      request('/api/room/' + code).then(function (p) {
+        if (!p || !p.doc || ctl.closed) return;
+        handle('state', p);
+        if (p.presence) handle('presence', p.presence);
+        setStatus('online');
+      }).catch(function () { /* 网络还没好，等下一拍 */ });
     }
     function stopPoll() {
       if (poll) { clearInterval(poll); poll = null; }
@@ -174,7 +196,16 @@
       if (es) { try { es.close(); } catch (e) { /* noop */ } }
     };
 
-    connectWs();
+    detectTransport().then(function (t) {
+      if (ctl.closed) return;
+      if (t === 'poll') {
+        /* Pages 版：只轮询，不折腾长连接 */
+        startPoll();
+        return;
+      }
+      connectWs();
+    });
+
     return ctl;
   }
 
