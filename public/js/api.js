@@ -47,7 +47,7 @@
 
     var ctl = { closed: false };
     var ws = null, es = null, poll = null, reconnectTimer = null, wsOpenTimer = null;
-    var pollMs = 1500;
+    var pollMs = 2000;
     var backoff = 600;
     var lastWsMsg = 0;
     var status = null;
@@ -63,28 +63,33 @@
       else if (event === 'presence' && handlers.onPresence) handlers.onPresence(data);
     }
 
-    /* ---- 轮询兜底（也是 Pages 版的主力） ---- */
-    function startPoll() {
-      if (poll || ctl.closed) return;
-      poll = setInterval(function () {
-        if (ctl.closed) return;
-        request('/api/room/' + code).then(function (p) {
-          if (!p || !p.doc) return;
-          handle('state', p);
-          if (p.presence) handle('presence', p.presence);
-          setStatus('online');
-        }).catch(function () { setStatus('offline'); });
-      }, pollMs);
-      /* 立刻拉一次，避免开局空窗 */
+    /* ---- 轮询兜底（也是 Pages 版的主力） ----
+       用「上一次回来再排下一次」的写法，避免慢网络下请求堆叠 */
+    function pollOnce() {
+      if (ctl.closed || !poll || poll.stopped) return;
       request('/api/room/' + code).then(function (p) {
-        if (!p || !p.doc || ctl.closed) return;
+        if (!p || !p.doc) return;
         handle('state', p);
         if (p.presence) handle('presence', p.presence);
         setStatus('online');
-      }).catch(function () { /* 网络还没好，等下一拍 */ });
+      }).catch(function () {
+        setStatus('offline');
+      }).then(function () {
+        if (poll && !poll.stopped && !ctl.closed) poll.timer = setTimeout(pollOnce, pollMs);
+      });
+    }
+
+    function startPoll() {
+      if (poll || ctl.closed) return;
+      poll = { stopped: false, timer: null };
+      pollOnce();
     }
     function stopPoll() {
-      if (poll) { clearInterval(poll); poll = null; }
+      if (poll) {
+        poll.stopped = true;
+        clearTimeout(poll.timer);
+        poll = null;
+      }
     }
 
     /* ---- SSE ---- */
