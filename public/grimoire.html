@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>魔典 · 血染钟楼</title>
+<meta name="theme-color" content="#0a0d12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/grimoire.css">
+</head>
+<body class="grimoire no-select" data-phase="day">
+<div class="scene" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+
+<header class="gtop">
+  <div class="comp" id="comp" title="已分配身份的类型统计">
+    <span class="cmp t"><i></i><b id="cT">0</b></span>
+    <span class="cmp o"><i></i><b id="cO">0</b></span>
+    <span class="cmp m"><i></i><b id="cM">0</b></span>
+    <span class="cmp d"><i></i><b id="cD">0</b></span>
+  </div>
+  <div class="gtop-r">
+    <button class="phase" id="phaseBtn" type="button">
+      <span class="p-icon" id="phaseIcon">☀</span>
+      <span class="p-txt"><b id="phaseText">白天</b><em id="dayText">第 1 天</em></span>
+    </button>
+    <button class="gear" id="btnMenu" type="button" aria-label="菜单">⚙</button>
+  </div>
+</header>
+
+<main class="town" id="town">
+  <ul class="ring" id="ring"></ul>
+
+  <div class="open" id="empty" hidden>
+    <p class="kicker">Blood on the Clocktower</p>
+    <h1>开一局</h1>
+    <p class="hint">选好人数，按座位号摆好杯子。<br>点杯子可以改名、分配身份、标记存亡。</p>
+    <div class="stepper">
+      <button id="cntMinus" type="button" aria-label="减少">−</button>
+      <span><b id="cntNum">8</b> 个座位</span>
+      <button id="cntPlus" type="button" aria-label="增加">＋</button>
+    </div>
+    <button class="btn primary" id="btnSeed" type="button">创建 <span id="cntNum2">8</span> 个座位</button>
+    <button class="btn ghost sm" id="btnAddOne" type="button">只摆一个杯子</button>
+  </div>
+</main>
+
+<footer class="gfoot">
+  <div class="tally">
+    <span><b id="sAlive">0</b> 存活</span>
+    <span class="dot">·</span>
+    <span class="v"><b id="sVote">0</b> 带票</span>
+    <span class="dot">·</span>
+    <span class="n"><b id="sNone">0</b> 无票</span>
+  </div>
+  <button class="addseat" id="btnAdd" type="button"><span>＋</span> 座位</button>
+</footer>
+
+<div class="sheet-mask" id="mask"></div>
+
+<div class="sheet" id="sheet" aria-hidden="true">
+  <header class="sh-head">
+    <span class="sh-avatar" id="shAvatar"><img id="shAvatarImg" alt=""></span>
+    <span class="sh-id">
+      <b id="shName">玩家</b>
+      <em id="shSeat">1 号座位</em>
+    </span>
+    <button class="sh-x" id="shClose" type="button" aria-label="关闭">✕</button>
+  </header>
+
+  <div class="sh-status" id="shStatus">
+    <button type="button" data-st="alive"><i class="s-dot"></i>存活</button>
+    <button type="button" data-st="deadVote"><i class="s-dot"></i>已亡 · 带票</button>
+    <button type="button" data-st="deadNone"><i class="s-dot"></i>已亡 · 无票</button>
+  </div>
+
+  <div class="sh-scroll">
+    <div class="sh-row">
+      <input class="sh-input" id="shNameInput" maxlength="24" placeholder="玩家名字" autocomplete="off" enterkeyhint="done">
+      <button class="sh-btn" id="shRename" type="button">改名</button>
+    </div>
+
+    <p class="sh-label">身份</p>
+    <div class="sh-search">
+      <input class="sh-input" id="shSearch" placeholder="搜索角色（暗流涌动 22 个）" autocomplete="off">
+    </div>
+    <div class="sh-tabs" id="shTabs"></div>
+    <div class="sh-grid" id="shGrid"></div>
+
+    <div class="sh-custom">
+      <input class="sh-input" id="shCustom" maxlength="12" placeholder="其他剧本的角色…" autocomplete="off">
+      <button class="sh-btn" id="shCustomBtn" type="button">用作身份</button>
+    </div>
+
+    <button class="sh-del" id="shRemove" type="button">移除这个杯子</button>
+  </div>
+
+  <p class="sh-ability" id="shAbility">还没分配身份。点上面的角色即可。</p>
+</div>
+
+<div class="modal" id="menu">
+  <div class="modal-card">
+    <h3>本局</h3>
+    <p class="menu-sub">房间 <b id="menuCode">····</b> · 城镇广场 <b id="menuSquare">0</b> 台</p>
+
+    <div class="menu-row">
+      <span>当前天数</span>
+      <div class="day-set">
+        <button id="dayMinus" type="button" aria-label="前一天">−</button>
+        <b id="menuDay">1</b>
+        <button id="dayPlus" type="button" aria-label="后一天">＋</button>
+      </div>
+    </div>
+    <div class="menu-row">
+      <span>遮住身份</span>
+      <button class="switch" id="btnHide" type="button" aria-pressed="false"><i></i></button>
+    </div>
+    <div class="menu-row">
+      <span>同步状态</span>
+      <span class="menu-ok" id="menuSync">连接中</span>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn ghost" type="button" data-close>关闭</button>
+      <button class="btn danger" type="button" id="btnReset">清空本局</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/model.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/store.js"></script>
+<script src="/js/characters.js"></script>
+<script src="/js/grimoire.js"></script>
+</body>
+</html>

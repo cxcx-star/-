@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>城镇广场 · 血染钟楼</title>
+<meta name="theme-color" content="#08070b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/square.css">
+</head>
+<body class="square no-select" data-phase="day">
+<div class="bg"></div>
+
+<main class="board" id="board">
+  <div class="ring" id="ring" aria-hidden="true">
+    <span class="tick t1"></span><span class="tick t2"></span><span class="tick t3"></span><span class="tick t4"></span>
+    <span class="tick t5"></span><span class="tick t6"></span><span class="tick t7"></span><span class="tick t8"></span>
+    <span class="clock" aria-hidden="true">
+      <span class="hand h1"></span><span class="hand h2"></span><span class="pin"></span>
+    </span>
+  </div>
+  <div class="plates" id="plates"></div>
+
+  <div class="empty" id="empty" hidden>
+    <p class="kicker">Town Square</p>
+    <h2>等待魔典连接</h2>
+    <p class="empty-url">手机打开 <b id="emptyUrl">—</b><br>选「魔典」加入这一局，牌位会自动排到这里。</p>
+    <p class="empty-tip">房间里还没有玩家。在手机上设置人数即可开局。</p>
+  </div>
+
+  <div class="fatal" id="fatal" hidden>
+    <p class="kicker">Lost</p>
+    <h2>这个房间不存在了</h2>
+    <p class="empty-url">房间码 <b id="fatalCode">—</b> 可能已被清空，或者服务重启过。</p>
+    <a class="btn primary" href="/">回首页重新开一局</a>
+  </div>
+</main>
+
+<header class="sq-head">
+  <div class="sq-left">
+    <span class="sync" id="sync"><i></i><span id="syncText">连接中</span></span>
+    <span class="code-chip" id="codeChip">—</span>
+    <span class="watch-chip" id="watchChip" hidden><i></i><b id="watchName"></b></span>
+  </div>
+  <div class="sq-title">
+    <p class="kicker" id="scriptName">暗流涌动</p>
+    <p class="phase" id="phaseLine">白天 · 第 1 天</p>
+  </div>
+  <div class="sq-counts">
+    <div class="cnt"><b id="cAlive">0</b><span>存活</span></div>
+    <div class="cnt ghost"><b id="cVote">0</b><span>带票</span></div>
+    <div class="cnt dead"><b id="cDead">0</b><span>无票</span></div>
+  </div>
+</header>
+
+<footer class="sq-foot">
+  <p class="join-hint" id="joinHint">手机打开 <b id="joinUrl">—</b> 加入这局</p>
+  <div class="tools">
+    <button class="tool" id="btnWatch" type="button">官方房间</button>
+    <button class="tool" id="btnArrange" type="button">自动排列</button>
+    <button class="tool" id="btnLock" type="button">解锁摆位</button>
+    <button class="tool" id="btnFull" type="button">全屏</button>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/model.js"></script>
+<script src="/js/api.js"></script>
+<script src="/js/store.js"></script>
+<script src="/js/square.js"></script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>血染钟楼 · 桌面同步</title>
+<meta name="theme-color" content="#08070b">
+<meta name="description" content="线下血染钟楼辅助：手机魔典 + 平板城镇广场，实时同步。">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/base.css">
+<link rel="stylesheet" href="/css/index.css">
+</head>
+<body class="no-select">
+<div class="bg"></div>
+
+<main class="home">
+  <header class="hero">
+    <div class="seal" aria-hidden="true">
+      <span class="seal-ring"></span>
+      <span class="seal-glyph">染</span>
+    </div>
+    <p class="kicker">Blood on the Clocktower</p>
+    <h1>血染钟楼<em>桌面同步</em></h1>
+    <p class="lede">平板摆开城镇广场，手机握紧魔典。<br>手机上按下「已亡」，广场上的名牌立刻蒙上血印。</p>
+    <div class="orn" aria-hidden="true"><span></span><i>✦</i><span></span></div>
+  </header>
+
+  <section class="roles">
+    <button class="role" data-role="grimoire" type="button">
+      <span class="role-top">
+        <span class="device phone" aria-hidden="true"><i></i></span>
+        <span class="role-tag">GRIMOIRE</span>
+      </span>
+      <span class="role-name">魔典<small>手机</small></span>
+      <span class="role-desc">直接用官方魔典本体（本地托管，断网也能用），改动实时同步到广场。</span>
+      <span class="role-go">进入魔典<span class="arr">→</span></span>
+    </button>
+
+    <button class="role" data-role="square" type="button">
+      <span class="role-top">
+        <span class="device tablet" aria-hidden="true"><i></i></span>
+        <span class="role-tag">TOWN SQUARE</span>
+      </span>
+      <span class="role-name">城镇广场<small>平板</small></span>
+      <span class="role-desc">只显示公开信息的牌位，死亡立刻盖印；名牌可随手拖动摆成你们那张桌子。</span>
+      <span class="role-go">进入广场<span class="arr">→</span></span>
+    </button>
+  </section>
+
+  <section class="connect">
+    <div class="connect-copy">
+      <p class="kicker">Open on another device</p>
+      <h2>另一台设备打开这个地址</h2>
+      <p class="hint">两台设备连同一个 Wi-Fi；手机端打开后点「魔典」会自动加入当前这局。</p>
+    </div>
+    <div class="url-row">
+      <code id="lanUrl">加载中…</code>
+      <button class="btn sm" id="copyUrl" type="button">复制</button>
+    </div>
+    <p class="url-sub" id="localUrl"></p>
+  </section>
+
+  <section class="rooms">
+    <div class="rooms-head">
+      <h2>进行中的房间</h2>
+      <span class="conn" id="conn"><i></i>连接中</span>
+    </div>
+    <div id="roomList" class="room-list">
+      <p class="empty">正在读取…</p>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>离线可用 · 数据只保存在这台电脑上</span>
+    <span class="foot-sep">·</span>
+    <span>支持 Node 18+，零依赖</span>
+  </footer>
+</main>
+
+<div class="modal" id="modal">
+  <div class="modal-card">
+    <h3>选择要加入的房间</h3>
+    <p>已有多个房间在进行。</p>
+    <div class="pick-list" id="pickList"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" type="button" data-close>取消</button>
+      <button class="btn primary" type="button" id="newRoomBtn">新建房间</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/api.js"></script>
+<script src="/js/index.js"></script>
+</body>
+</html>
