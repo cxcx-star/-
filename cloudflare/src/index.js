@@ -3,9 +3,17 @@
    每个房间一个 Durable Object：状态持久化 + SSE 长连接广播。
    （本文件里的 model.js 是 Node 版同一份，UMD 载入后挂在 globalThis.Model） */
 
-import '../../public/js/model.js';
+import * as modelNs from '../../public/js/model.js';
 
-const Model = globalThis.Model;
+/* model.js 是 UMD：在 Workers 的打包里会走 CJS 分支（module.exports = api），
+   也可能走 ESM 副作用（globalThis.Model）。两种都兜住 ——
+   漏掉的话 Model 会是 undefined，建房间时直接 1101。 */
+const Model =
+  modelNs && modelNs.newDoc ? modelNs :
+  modelNs && modelNs.default && modelNs.default.newDoc ? modelNs.default :
+  globalThis && globalThis.Model;
+
+if (!Model || !Model.newDoc) throw new Error('model.js 未能载入');
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
@@ -270,6 +278,22 @@ function roomStub(env, code) {
 
 export default {
   async fetch(req, env) {
+    try {
+      return await route(req, env);
+    } catch (err) {
+      /* 把异常暴露成 JSON，方便在没有 wrangler tail 的情况下远程定位 */
+      return json(
+        {
+          error: String((err && err.message) || err),
+          stack: String((err && err.stack) || '').slice(0, 900),
+        },
+        500
+      );
+    }
+  },
+};
+
+async function route(req, env) {
     const url = new URL(req.url);
     const p = url.pathname;
 
@@ -362,5 +386,4 @@ export default {
 
     /* 其余全部交给静态资源（public/ 目录） */
     return env.ASSETS.fetch(req);
-  },
-};
+}
