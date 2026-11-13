@@ -150,3 +150,19 @@ public/js/characters.js   角色数据（暗流涌动）
 - **二维码**：平板直接显示二维码，手机扫一下就进来
 - **更多剧本 / 旅行者**：往 `characters.js` 里加数据即可，界面会自动分组
 - **提名与投票**：加一轮提名流程，把票数也同步到广场
+
+---
+
+## 云端部署（Cloudflare，可选）
+
+仓库里带了 `wrangler.jsonc` 和 `cloudflare/src/index.js`：把后端换成 **Worker + Durable Object**，
+前端和素材不改，房间状态存在 Durable Object 里，SSE 推送照旧。
+
+- 适合：想把链接发给外地朋友、或者不想一直开着手机上的服务
+- 不适合：断网场景、官方线上房间监听（云端版不支持 watch）
+
+详细步骤见 [cloudflare/README.md](cloudflare/README.md)。
+
+```bash
+npx wrangler deploy     # 或者用 Cloudflare 控制台的 Workers → Connect to Git
+```

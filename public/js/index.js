@@ -138,6 +138,11 @@
 
   API.health().then(function (h) {
     healthCache = h;
+    if (h.cloud) {
+      $('#lanUrl').textContent = location.origin + '/';
+      $('#localUrl').textContent = '云端服务 · 手机和平板不用连同一个 Wi-Fi，发给朋友也能打开';
+      return;
+    }
     var port = h.port || location.port || 80;
     var ip = (h.ips && h.ips[0]) || location.hostname;
     var lan = h.httpsPort
