@@ -112,6 +112,24 @@ export class RoomDO {
       if (c.role === 'square') out.square++;
       else out.grimoire++;
     });
+    let sockets = [];
+    try {
+      sockets = this.state.getWebSockets() || [];
+    } catch (e) {
+      sockets = [];
+    }
+    for (const ws of sockets) {
+      let role = 'grimoire';
+      try {
+        const a = ws.deserializeAttachment();
+        if (a && a.role) role = a.role;
+      } catch (e) {
+        /* 休眠后取不到就按魔典算 */
+      }
+      out.total++;
+      if (role === 'square') out.square++;
+      else out.grimoire++;
+    }
     return out;
   }
 
@@ -119,7 +137,7 @@ export class RoomDO {
     return { doc: this.doc, rev: this.doc.rev, presence: this.presence(), watch: null };
   }
 
-  /* ---- SSE ---- */
+  /* ---- 推送 ---- */
 
   send(client, event, data) {
     const line = 'event: ' + event + '\ndata: ' + JSON.stringify(data) + '\n\n';
@@ -130,10 +148,75 @@ export class RoomDO {
     for (const c of Array.from(this.sse)) {
       this.send(c, event, data).catch(() => this.sse.delete(c));
     }
+    const msg = JSON.stringify({ e: event, d: data });
+    let sockets = [];
+    try {
+      sockets = this.state.getWebSockets() || [];
+    } catch (e) {
+      sockets = [];
+    }
+    for (const ws of sockets) {
+      try {
+        ws.send(msg);
+      } catch (e) {
+        /* 已经断了，等 close 回调清理 */
+      }
+    }
   }
 
   broadcastPresence() {
     this.broadcast('presence', this.presence());
+  }
+
+  /* ---- WebSocket（DO 休眠连接，最稳的一条路） ---- */
+
+  handleWs(url) {
+    const role = url.searchParams.get('role') === 'square' ? 'square' : 'grimoire';
+    const pair = new WebSocketPair();
+    const client = pair[0];
+    const server = pair[1];
+    this.state.acceptWebSocket(server);
+    try {
+      server.serializeAttachment({ role });
+    } catch (e) {
+      /* noop */
+    }
+    try {
+      server.send(JSON.stringify({ e: 'state', d: this.payload() }));
+    } catch (e) {
+      /* noop */
+    }
+    this.broadcastPresence();
+    return new Response(null, { status: 101, webSocket: client });
+  }
+
+  async webSocketMessage(ws, message) {
+    let m = null;
+    try {
+      m = JSON.parse(typeof message === 'string' ? message : new TextDecoder().decode(message));
+    } catch (e) {
+      return;
+    }
+    if (m && m.t === 'ping') {
+      try {
+        ws.send(JSON.stringify({ e: 'ping', d: Date.now() }));
+      } catch (e) {
+        /* noop */
+      }
+    }
+  }
+
+  async webSocketClose(ws) {
+    try {
+      ws.close();
+    } catch (e) {
+      /* noop */
+    }
+    this.broadcastPresence();
+  }
+
+  async webSocketError(ws) {
+    this.broadcastPresence();
   }
 
   /* ---- 状态变更 ---- */
@@ -164,9 +247,19 @@ export class RoomDO {
 
   async fetch(req) {
     const url = new URL(req.url);
-    const code = (url.searchParams.get('code') || '').toUpperCase();
-    const path = url.pathname;
+    let code = (url.searchParams.get('code') || '').toUpperCase();
+    let path = url.pathname;
+
+    /* WebSocket 升级请求要原样转发（Upgrade 头不能重建），所以这里也认原始路径 */
+    const mApi = /^\/api\/room\/([A-Za-z0-9]{4})\/(ws|stream|intent|phone)$/.exec(path);
+    if (mApi) {
+      code = mApi[1].toUpperCase();
+      path = '/r/' + mApi[2];
+    }
+
     await this.load(code);
+
+    if (path === '/r/ws') return this.handleWs(url);
 
     /* --- SSE 订阅 --- */
     if (path === '/r/stream') {
@@ -361,7 +454,7 @@ async function route(req, env) {
       return json({ error: 'method not allowed' }, 405);
     }
 
-    const m = /^\/api\/room\/([A-Za-z0-9]{4})(\/stream|\/intent|\/phone|\/watch|\/delete)?$/.exec(p);
+    const m = /^\/api\/room\/([A-Za-z0-9]{4})(\/stream|\/ws|\/intent|\/phone|\/watch|\/delete)?$/.exec(p);
     if (m) {
       const code = m[1].toUpperCase();
       const sub = m[2] || '';
@@ -373,6 +466,10 @@ async function route(req, env) {
         return stub.fetch('https://do/r?code=' + code, { method: 'DELETE' });
       }
       const stub = roomStub(env, code);
+      if (sub === '/ws') {
+        /* 原样转发，保留 Upgrade / Sec-WebSocket-* 头 */
+        return stub.fetch(req);
+      }
       const target = 'https://do/r' + (sub || '') + '?code=' + code + (sub === '/stream' ? '&role=' + (url.searchParams.get('role') || 'grimoire') : '');
       const init = { method: req.method, headers: req.headers };
       if (req.method !== 'GET' && req.method !== 'HEAD') {
