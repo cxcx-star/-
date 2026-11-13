@@ -150,9 +150,17 @@
       : 'http://' + ip + ':' + port + '/';
     if (location.protocol === 'https:') lan = location.origin + '/';
     $('#lanUrl').textContent = lan;
-    $('#localUrl').textContent = h.httpsPort
-      ? '自签名证书：手机首次打开点「高级 → 继续前往」即可'
-      : '本机地址 ' + location.origin + '/ · 手机与平板需连同一个 Wi-Fi';
+    /* 手机同时开着 Wi-Fi 和热点时会有多个地址，都列出来，平板连哪个就用哪个 */
+    var others = (h.ips || []).slice(1).map(function (x) {
+      return 'http://' + x + ':' + port + '/';
+    });
+    if (others.length) {
+      $('#localUrl').textContent = '其他可用地址（连热点就用这条）：' + others.join('   ');
+    } else {
+      $('#localUrl').textContent = h.httpsPort
+        ? '自签名证书：手机首次打开点「高级 → 继续前往」即可'
+        : '本机地址 ' + location.origin + '/ · 手机与平板需连同一个 Wi-Fi';
+    }
   }).catch(function () {
     $('#lanUrl').textContent = location.origin + '/';
   });
