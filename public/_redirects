@@ -1,0 +1,5 @@
+# 官方魔典内部用的是 /oss /img /static 三个绝对路径，
+# 在 Cloudflare Pages 上映射到 /gs/ 目录下（Worker 版里是路由处理的）。
+/oss/*    /gs/oss/:splat     200
+/img/*    /gs/img/:splat     200
+/static/* /gs/static/:splat  200
