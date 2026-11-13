@@ -384,6 +384,13 @@ async function route(req, env) {
 
     if (p.startsWith('/api/')) return json({ error: 'not found' }, 404);
 
+    /* 官方魔典内部用的是 /oss /img /static 三个绝对路径，映射到 /gs/ 下 */
+    if (/^\/(oss|img|static)\//.test(p)) {
+      const u2 = new URL(req.url);
+      u2.pathname = '/gs' + p;
+      return env.ASSETS.fetch(new Request(u2.toString(), { method: req.method, headers: req.headers }));
+    }
+
     /* 其余全部交给静态资源（public/ 目录） */
     return env.ASSETS.fetch(req);
 }
