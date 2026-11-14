@@ -372,6 +372,26 @@
     $('#btnFull').textContent = document.fullscreenElement ? '退出全屏' : '全屏';
   });
 
+  /* ---- 样式切换：羊皮纸 ⇄ 隐藏模式（官方魔典暗场）---- */
+  var STYLE_KEY = 'ct.style';
+  var style = 'paper';
+  try { style = localStorage.getItem(STYLE_KEY) === 'veil' ? 'veil' : 'paper'; } catch (err) { /* noop */ }
+
+  function applyStyle() {
+    document.body.classList.toggle('theme-veil', style === 'veil');
+    var btn = $('#btnStyle');
+    if (btn) btn.textContent = style === 'veil' ? '样式：隐藏模式' : '样式：羊皮纸';
+  }
+
+  $('#btnStyle').addEventListener('click', function () {
+    style = style === 'veil' ? 'paper' : 'veil';
+    applyStyle();
+    try { localStorage.setItem(STYLE_KEY, style); } catch (err) { /* noop */ }
+    toast(style === 'veil' ? '隐藏模式：只留座位与姓名，适合摆在桌上' : '已切回羊皮纸样式');
+  });
+
+  applyStyle();
+
   function keepAwake() {
     if (!navigator.wakeLock || !navigator.wakeLock.request) return;
     navigator.wakeLock.request('screen').then(function (lock) {

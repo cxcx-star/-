@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="/css/square.css">
 </head>
 <body class="square no-select" data-phase="day">
+<script>try{if(localStorage.getItem('ct.style')==='veil')document.body.classList.add('theme-veil');}catch(e){}</script>
 <div class="bg"></div>
 
 <main class="board" id="board">
@@ -60,6 +61,7 @@
 <footer class="sq-foot">
   <p class="join-hint" id="joinHint">手机打开 <b id="joinUrl">—</b> 加入这局</p>
   <div class="tools">
+    <button class="tool" id="btnStyle" type="button">样式：羊皮纸</button>
     <button class="tool" id="btnWatch" type="button">官方房间</button>
     <button class="tool" id="btnArrange" type="button">自动排列</button>
     <button class="tool" id="btnLock" type="button">解锁摆位</button>
