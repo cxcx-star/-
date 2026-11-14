@@ -502,73 +502,92 @@ body[data-locked="1"] .plate:active { cursor: default; }
 .watch-chip.on i { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
 .watch-chip b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ============ 样式 B：隐藏模式（官方魔典 · 暗场） ============
-   模仿官方魔典「隐藏角色」后的观感：没有羊皮纸，没有血印，
-   所有牌位压成同一块冷色石板，只留座位与姓名。 */
-body.theme-veil { background: #06070a; }
-body.theme-veil .bg::before {
-  background: linear-gradient(180deg, rgba(6, 7, 10, 0.92), rgba(6, 7, 10, 0.78));
-  opacity: 0.6;
+/* ============ 样式 B：官方魔典（隐藏模式） ============
+   素材全部取自官方魔典本体：bg_night / token1 / death1 / demon-head。
+   牌位是一枚圆形筹码，底部不再显示名字，只留座位号。 */
+body.theme-official { background: #05060a; }
+body.theme-official .bg {
+  background-image: url("/gs/oss/data_file/clocktower/web/bg_night.png");
+  background-size: cover;
+  background-position: center 40%;
+  background-repeat: no-repeat;
 }
-body.theme-veil .ring {
-  border-color: rgba(150, 158, 180, 0.09);
-  background: radial-gradient(circle at 50% 48%, rgba(118, 128, 158, 0.05), transparent 68%);
-  box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.55);
+body.theme-official .bg::before {
+  background: radial-gradient(ellipse 78% 72% at 50% 44%, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.72) 100%);
+  opacity: 1;
 }
-body.theme-veil .ring::before { border-color: rgba(150, 158, 180, 0.05); }
-body.theme-veil .clock { opacity: 0.42; }
+body.theme-official .ring,
+body.theme-official .clock { display: none; }
 
-body.theme-veil .plate[data-status="alive"],
-body.theme-veil .plate[data-status="deadVote"],
-body.theme-veil .plate[data-status="deadNone"] {
-  background: linear-gradient(160deg, #191a20 0%, #131419 58%, #0e0f13 100%);
-  border: 1px solid rgba(150, 158, 180, 0.17);
-  box-shadow:
-    0 16px 30px -26px rgba(0, 0, 0, 0.95),
-    inset 0 1px 0 rgba(255, 255, 255, 0.035);
-  color: #b9bdc8;
+body.theme-official .plate {
+  width: calc(var(--plate-w, 170px) * 0.78);
+  height: calc(var(--plate-w, 170px) * 0.78);
+  border-radius: 50%;
+  padding: 0;
+  border: 0;
+  background: url("/gs/oss/data_file/clocktower/web/token1.png") center / cover no-repeat;
+  box-shadow: 0 30px 50px -26px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(214, 192, 150, 0.16);
 }
-body.theme-veil .plate::before { display: none; }
-body.theme-veil .plate .nm {
-  color: #c6cad4;
-  letter-spacing: 0.13em;
-  text-shadow: none;
-  opacity: 0.92;
+body.theme-official .plate[data-status="deadVote"],
+body.theme-official .plate[data-status="deadNone"] {
+  background-image: url("/gs/oss/data_file/clocktower/web/death1.png");
+  box-shadow: 0 26px 44px -26px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(150, 158, 180, 0.2);
 }
-/* 已亡：整块压暗，用一道冷色斜线代替血痕 */
-body.theme-veil .plate.is-dead { opacity: 0.74; border-style: dashed; }
-body.theme-veil .plate.is-dead::before {
-  display: block;
-  background:
-    linear-gradient(24deg, transparent calc(50% - 0.6px), rgba(150, 158, 180, 0.26) calc(50% - 0.2px), rgba(150, 158, 180, 0.26) calc(50% + 0.2px), transparent calc(50% + 0.8px)),
-    linear-gradient(-24deg, transparent calc(50% - 0.8px), rgba(150, 158, 180, 0.26) calc(50% - 0.2px), rgba(150, 158, 180, 0.26) calc(50% + 0.2px), transparent calc(50% + 0.8px));
-}
-body.theme-veil .plate.is-dead .nm { color: #868b9a; }
+body.theme-official .plate::before { display: none; }
 
-/* 座位号：铜钱改成素面金属片 */
-body.theme-veil .coin {
-  background: radial-gradient(circle at 34% 26%, #2b2f38, #1a1d24 68%, #12141a);
-  border-color: rgba(160, 168, 190, 0.30);
-  color: #c2c7d3;
-  box-shadow: 0 8px 16px -10px #000, inset 0 0 9px rgba(160, 168, 190, 0.10);
+/* 中央恶魔头（官方那张羊皮纸筹码的标记） */
+body.theme-official .plate::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 58%;
+  height: 62%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(180deg, #b483ec 0%, #7d4fc0 58%, #573493 100%);
+  -webkit-mask: url("/gs/oss/data_file/clocktower/web/demon-head.png") center / contain no-repeat;
+  mask: url("/gs/oss/data_file/clocktower/web/demon-head.png") center / contain no-repeat;
+  filter: drop-shadow(0 0 7px rgba(150, 100, 220, 0.35));
+  opacity: 0.94;
+  pointer-events: none;
+  transition: filter 0.5s, opacity 0.5s;
 }
-body.theme-veil .plate.is-dead .coin {
-  background: radial-gradient(circle at 34% 26%, #1d2027, #12141a 70%);
-  border-color: rgba(150, 158, 180, 0.18);
-  color: #6d7280;
+body.theme-official .plate[data-status="deadVote"]::after,
+body.theme-official .plate[data-status="deadNone"]::after {
+  background: linear-gradient(180deg, #6b707e 0%, #41454f 100%);
+  filter: none;
+  opacity: 0.34;
 }
-/* 死亡印章与鬼票：去掉红色，改成灰白 */
-body.theme-veil .stamp {
-  border-color: rgba(150, 158, 180, 0.34);
-  background: rgba(9, 10, 14, 0.6);
-  color: #9aa0ae;
+
+/* 名字和死亡印章全部去掉 */
+body.theme-official .plate .nm,
+body.theme-official .plate .stamp { display: none; }
+
+/* 座位号：左上角小铜牌 */
+body.theme-official .coin {
+  width: calc(var(--plate-w, 170px) * 0.2);
+  height: calc(var(--plate-w, 170px) * 0.2);
+  min-width: 20px;
+  min-height: 20px;
+  transform: translate(-10%, -10%);
+  background: radial-gradient(circle at 34% 26%, #45331d, #1d1409 72%);
+  border: 1px solid rgba(214, 186, 122, 0.62);
+  color: #f2e2bb;
+  box-shadow: 0 10px 18px -10px rgba(0, 0, 0, 0.9), inset 0 0 8px rgba(214, 186, 122, 0.2);
+  font-size: clamp(11px, calc(var(--plate-w, 170px) * 0.116), 22px);
 }
-body.theme-veil .plate.is-dead .stamp { opacity: 0.8; }
-body.theme-veil .token {
-  background: radial-gradient(circle at 34% 26%, #262a33, #15181e 70%);
-  border-color: rgba(160, 168, 190, 0.28);
-  color: #b6bbc6;
+body.theme-official .plate.is-dead .coin {
+  background: radial-gradient(circle at 34% 26%, #2c3038, #15171c 72%);
+  border-color: rgba(160, 168, 190, 0.34);
+  color: #a9afbd;
 }
-/* 底部工具条也压暗一点，避免跳出来 */
-body.theme-veil .sq-foot .tool,
-body.theme-veil .sq-head .code-chip { color: #8d93a1; }
+
+/* 鬼票挪到右下角 */
+body.theme-official .token {
+  top: auto;
+  bottom: 0;
+  right: 0;
+  width: calc(var(--plate-w, 170px) * 0.24);
+  height: calc(var(--plate-w, 170px) * 0.24);
+  transform: translate(12%, 12%);
+}
