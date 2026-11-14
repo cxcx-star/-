@@ -502,9 +502,12 @@ body[data-locked="1"] .plate:active { cursor: default; }
 .watch-chip.on i { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
 .watch-chip b { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ============ 样式 B：官方魔典（隐藏模式） ============
-   素材全部取自官方魔典本体：bg_night / token1 / death1 / demon-head。
-   牌位是一枚圆形筹码，底部不再显示名字，只留座位号。 */
+/* ============ 样式 B：官方魔典（隐藏角色）============
+   素材取自官方魔典本体（/assets/seat/）：
+     存活     = life1.png
+     死亡     = death1.png（黑石盘）
+     死亡带票 = death1.png + vote1.png（缩到中间 50%）
+   牌位是一个圆形筹码，底部不显示名字，只留座位号。 */
 body.theme-official { background: #05060a; }
 body.theme-official .bg {
   background-image: url("/gs/oss/data_file/clocktower/web/bg_night.png");
@@ -513,7 +516,7 @@ body.theme-official .bg {
   background-repeat: no-repeat;
 }
 body.theme-official .bg::before {
-  background: radial-gradient(ellipse 78% 72% at 50% 44%, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.72) 100%);
+  background: radial-gradient(ellipse 78% 72% at 50% 44%, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.66) 100%);
   opacity: 1;
 }
 body.theme-official .ring,
@@ -525,43 +528,34 @@ body.theme-official .plate {
   border-radius: 50%;
   padding: 0;
   border: 0;
-  background: url("/gs/oss/data_file/clocktower/web/token1.png") center / cover no-repeat;
-  box-shadow: 0 30px 50px -26px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(214, 192, 150, 0.16);
+  background: url("/assets/seat/official-life1.png") center / cover no-repeat;
+  box-shadow: 0 30px 50px -26px rgba(0, 0, 0, 0.95);
+  transition: background 0.45s, box-shadow 0.45s;
 }
-body.theme-official .plate[data-status="deadVote"],
-body.theme-official .plate[data-status="deadNone"] {
-  background-image: url("/gs/oss/data_file/clocktower/web/death1.png");
-  box-shadow: 0 26px 44px -26px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(150, 158, 180, 0.2);
+body.theme-official .plate.is-dead {
+  background-image: url("/assets/seat/official-death1.png");
+  box-shadow: 0 26px 44px -26px rgba(0, 0, 0, 0.95);
 }
 body.theme-official .plate::before { display: none; }
 
-/* 中央恶魔头（官方那张羊皮纸筹码的标记） */
-body.theme-official .plate::after {
+/* 死亡带票：中间叠 50% 的羊皮纸筹码（官方 .player.dead .life:after 的做法） */
+body.theme-official .plate.is-dead::after {
   content: "";
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 58%;
-  height: 62%;
+  width: 50%;
+  height: 50%;
   transform: translate(-50%, -50%);
-  background: linear-gradient(180deg, #b483ec 0%, #7d4fc0 58%, #573493 100%);
-  -webkit-mask: url("/gs/oss/data_file/clocktower/web/demon-head.png") center / contain no-repeat;
-  mask: url("/gs/oss/data_file/clocktower/web/demon-head.png") center / contain no-repeat;
-  filter: drop-shadow(0 0 7px rgba(150, 100, 220, 0.35));
-  opacity: 0.94;
+  background: url("/assets/seat/official-vote1.png") center / contain no-repeat;
   pointer-events: none;
-  transition: filter 0.5s, opacity 0.5s;
 }
-body.theme-official .plate[data-status="deadVote"]::after,
-body.theme-official .plate[data-status="deadNone"]::after {
-  background: linear-gradient(180deg, #6b707e 0%, #41454f 100%);
-  filter: none;
-  opacity: 0.34;
-}
+body.theme-official .plate[data-status="deadNone"]::after { display: none; }
 
-/* 名字和死亡印章全部去掉 */
+/* 名字、死亡印章、票面全部去掉 */
 body.theme-official .plate .nm,
-body.theme-official .plate .stamp { display: none; }
+body.theme-official .plate .stamp,
+body.theme-official .plate .token { display: none !important; }
 
 /* 座位号：左上角小铜牌 */
 body.theme-official .coin {
@@ -569,25 +563,10 @@ body.theme-official .coin {
   height: calc(var(--plate-w, 170px) * 0.2);
   min-width: 20px;
   min-height: 20px;
-  transform: translate(-10%, -10%);
-  background: radial-gradient(circle at 34% 26%, #45331d, #1d1409 72%);
-  border: 1px solid rgba(214, 186, 122, 0.62);
-  color: #f2e2bb;
-  box-shadow: 0 10px 18px -10px rgba(0, 0, 0, 0.9), inset 0 0 8px rgba(214, 186, 122, 0.2);
+  transform: translate(-8%, -8%);
+  background: radial-gradient(circle at 34% 26%, #46341e, #1d1409 72%);
+  border: 1px solid rgba(216, 186, 122, 0.65);
+  color: #f3e3bd;
+  box-shadow: 0 10px 18px -10px rgba(0, 0, 0, 0.9), inset 0 0 8px rgba(216, 186, 122, 0.22);
   font-size: clamp(11px, calc(var(--plate-w, 170px) * 0.116), 22px);
-}
-body.theme-official .plate.is-dead .coin {
-  background: radial-gradient(circle at 34% 26%, #2c3038, #15171c 72%);
-  border-color: rgba(160, 168, 190, 0.34);
-  color: #a9afbd;
-}
-
-/* 鬼票挪到右下角 */
-body.theme-official .token {
-  top: auto;
-  bottom: 0;
-  right: 0;
-  width: calc(var(--plate-w, 170px) * 0.24);
-  height: calc(var(--plate-w, 170px) * 0.24);
-  transform: translate(12%, 12%);
 }
