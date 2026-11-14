@@ -429,13 +429,15 @@
       ? 'https://' + ip + ':' + h.httpsPort + '/'
       : 'http://' + ip + ':' + port + '/';
     if (location.protocol === 'https:') baseUrl = location.origin + '/';
-    $('#emptyUrl').textContent = baseUrl;
-    $('#joinUrl').textContent = baseUrl;
+    var eu = $('#emptyUrl'), ju = $('#joinUrl');
+    if (eu) eu.textContent = baseUrl;
+    if (ju) ju.textContent = baseUrl;
     setPresence(presence);
   }).catch(function () {
     baseUrl = location.origin + '/';
-    $('#emptyUrl').textContent = baseUrl;
-    $('#joinUrl').textContent = baseUrl;
+    var eu2 = $('#emptyUrl'), ju2 = $('#joinUrl');
+    if (eu2) eu2.textContent = baseUrl;
+    if (ju2) ju2.textContent = baseUrl;
   });
 
   syncLock();
