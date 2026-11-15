@@ -528,15 +528,29 @@ body.theme-official .plate {
   border-radius: 50%;
   padding: 0;
   border: 0;
-  background: url("/assets/seat/official-life1.png") center / cover no-repeat;
+  background: none;
   box-shadow: 0 30px 50px -26px rgba(0, 0, 0, 0.95);
-  transition: background 0.45s, box-shadow 0.45s;
+  transition: box-shadow 0.45s;
 }
-body.theme-official .plate.is-dead {
+/* 筹码本体放在 ::before：旅行者要去色时只影响筹码，不影响外圈描边 */
+body.theme-official .plate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: url("/assets/seat/official-life1.png") center / cover no-repeat;
+  z-index: 0;
+  display: block;
+}
+body.theme-official .plate.is-dead::before {
   background-image: url("/assets/seat/official-death1.png");
-  box-shadow: 0 26px 44px -26px rgba(0, 0, 0, 0.95);
 }
-body.theme-official .plate::before { display: none; }
+body.theme-official .plate.is-dead::after { z-index: 2; }
+/* 旅行者：筹码去色 + 官方紫色 #cc04ff 描边（官方 .player.traveler .life{filter:grayscale(100%)}） */
+body.theme-official .plate.traveller::before { filter: grayscale(100%); }
+body.theme-official .plate.traveller {
+  box-shadow: 0 0 0 2px #cc04ff, 0 0 24px rgba(204, 4, 255, 0.5);
+}
 
 /* 死亡带票：中间叠 50% 的羊皮纸筹码（官方 .player.dead .life:after 的做法） */
 body.theme-official .plate.is-dead::after {
@@ -569,4 +583,37 @@ body.theme-official .coin {
   color: #f3e3bd;
   box-shadow: 0 10px 18px -10px rgba(0, 0, 0, 0.9), inset 0 0 8px rgba(216, 186, 122, 0.22);
   font-size: clamp(11px, calc(var(--plate-w, 170px) * 0.116), 22px);
+}
+
+/* ============ 旅行者标记（长按名牌切换） ============
+   羊皮纸风格：用官方旅行者角色 token 上的两个色 —— 深红 #a81f2a 与 青蓝 #0e8bbf —— 做斜向渐变。 */
+.plate.traveller[data-status="alive"] {
+  background:
+    radial-gradient(120% 100% at 16% -14%, rgba(255, 196, 196, 0.34) 0%, rgba(255, 196, 196, 0) 54%),
+    linear-gradient(135deg, #a81f2a 0%, #8a1c3f 34%, #1c3a74 70%, #0e8bbf 100%);
+  border: 1px solid rgba(255, 196, 196, 0.52);
+  box-shadow:
+    0 22px 38px -26px rgba(0, 0, 0, 0.95),
+    0 1px 0 rgba(255, 255, 255, 0.26) inset,
+    0 0 30px rgba(168, 31, 42, 0.22),
+    0 0 34px rgba(14, 139, 191, 0.22);
+}
+.plate.traveller .nm {
+  color: #fff7f4;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+.plate.traveller .coin {
+  background: linear-gradient(140deg, #a81f2a 0%, #7a1c3f 54%, #0e8bbf 100%);
+  border-color: rgba(255, 200, 200, 0.6);
+  color: #fff4f0;
+  box-shadow: 0 8px 16px -8px rgba(0, 0, 0, 0.95), inset 0 0 9px rgba(255, 205, 205, 0.22);
+}
+/* 已亡的旅行者：同色系压暗，血痕与票面照旧 */
+.plate.traveller[data-status="deadVote"],
+.plate.traveller[data-status="deadNone"] {
+  background:
+    radial-gradient(120% 100% at 28% -18%, rgba(150, 34, 48, 0.42) 0%, rgba(150, 34, 48, 0) 60%),
+    linear-gradient(135deg, #4a1016 0%, #3a1226 52%, #0f1c33 100%);
+  border: 1px solid rgba(214, 110, 130, 0.42);
+  box-shadow: 0 20px 36px -26px rgba(0, 0, 0, 0.95), 0 0 26px rgba(120, 30, 50, 0.26);
 }

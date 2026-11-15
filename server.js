@@ -574,7 +574,8 @@ async function handleApi(req, res, url) {
         seat: seat,
         name: Model.text(raw.name, 24) || ('玩家' + seat),
         character: raw.character ? Model.text(raw.character, 32) : null,
-        status: Model.STATUSES.indexOf(raw.status) >= 0 ? raw.status : 'alive'
+        status: Model.STATUSES.indexOf(raw.status) >= 0 ? raw.status : 'alive',
+      traveller: old ? !!old.traveller : false
       };
     });
     // 防止另一个浏览器打开空的官方魔典，把桌上已有的牌全冲掉

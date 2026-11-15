@@ -57,6 +57,7 @@
 
     el.dataset.status = p.status;
     el.classList.toggle('is-dead', isDead);
+    el.classList.toggle('traveller', !!p.traveller);
     el.querySelector('.nm').textContent = p.name;
     el.querySelector('.coin b').textContent = String(p.seat);
 
@@ -204,8 +205,18 @@
 
   /* ---------- 拖动摆位 ---------- */
 
+  /* 长按名牌 = 标记 / 取消「旅行者」；拖动仍然是移动位置 */
+  function toggleTraveller(id) {
+    var p = null;
+    doc.players.forEach(function (x) { if (x.id === id) p = x; });
+    if (!p) return;
+    var on = !p.traveller;
+    store.send({ type: 'traveller', id: id, on: on });
+    if (navigator.vibrate) { try { navigator.vibrate(on ? [0, 26] : 18); } catch (err) { /* noop */ } }
+    toast((p.name || '玩家') + (on ? ' 已标记为旅行者' : ' 已取消旅行者'));
+  }
+
   box.addEventListener('pointerdown', function (e) {
-    if (locked) return;
     var el = e.target.closest ? e.target.closest('.plate') : null;
     if (!el) return;
     e.preventDefault();
@@ -219,14 +230,32 @@
       hh: r.height / 2,
       x: null,
       y: null,
-      moved: false
+      moved: false,
+      locked: locked,
+      startX: e.clientX,
+      startY: e.clientY,
+      holdTimer: null
     };
+    var d = drag;
+    d.holdTimer = setTimeout(function () {
+      if (!drag || drag !== d || d.moved) return;
+      clearTimeout(d.holdTimer);
+      drag = null;
+      d.el.classList.remove('dragging');
+      toggleTraveller(d.id);
+    }, 620);
     try { el.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
-    el.classList.add('dragging');
+    if (!locked) el.classList.add('dragging');
   });
 
   box.addEventListener('pointermove', function (e) {
     if (!drag) return;
+    var dist = Math.abs(e.clientX - drag.startX) + Math.abs(e.clientY - drag.startY);
+    if (dist > 8 && drag.holdTimer) {
+      clearTimeout(drag.holdTimer);
+      drag.holdTimer = null;
+    }
+    if (drag.locked) { if (dist > 8) drag.moved = true; return; }
     var W = window.innerWidth;
     var H = window.innerHeight;
     var x = (e.clientX - drag.dx) / W;
@@ -245,6 +274,7 @@
     if (!drag) return;
     var d = drag;
     drag = null;
+    if (d.holdTimer) clearTimeout(d.holdTimer);
     d.el.classList.remove('dragging');
     if (d.moved && d.x != null) {
       store.send({ type: 'move', id: d.id, x: d.x, y: d.y });

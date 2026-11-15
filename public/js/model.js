@@ -113,7 +113,8 @@
         seat: int(p.seat, 1, 99, i + 1),
         name: text(p.name, 24) || ('玩家' + (i + 1)),
         character: typeof p.character === 'string' && p.character ? text(p.character, 32) : null,
-        status: STATUSES.indexOf(p.status) >= 0 ? p.status : 'alive'
+        status: STATUSES.indexOf(p.status) >= 0 ? p.status : 'alive',
+        traveller: !!p.traveller
       });
     });
     doc.players.sort(function (a, b) { return a.seat - b.seat || (a.id < b.id ? -1 : 1); });
@@ -133,7 +134,7 @@
     return doc;
   }
 
-  var INTENTS = ['seed', 'add', 'remove', 'rename', 'status', 'character', 'move', 'layout', 'meta', 'reset'];
+  var INTENTS = ['seed', 'add', 'remove', 'rename', 'status', 'character', 'move', 'layout', 'meta', 'reset', 'traveller'];
 
   /* 所有写入都走这里：服务器应用后广播；手机端本地先应用一次做乐观更新。 */
   function applyIntent(doc, intent) {
@@ -175,6 +176,9 @@
     } else if (type === 'character') {
       var cp = find(doc, intent.id);
       if (cp) cp.character = intent.character ? text(intent.character, 32) : null;
+    } else if (type === 'traveller') {
+      var tp = find(doc, intent.id);
+      if (tp) tp.traveller = !!intent.on;
     } else if (type === 'move') {
       var mp = find(doc, intent.id);
       if (mp) doc.layout[mp.id] = { x: r4(num(intent.x, 0, 1, 0.5)), y: r4(num(intent.y, 0, 1, 0.5)), auto: false };

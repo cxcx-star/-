@@ -312,6 +312,7 @@ export class RoomDO {
           name: Model.text(raw.name, 24) || '玩家' + seat,
           character: raw.character ? Model.text(raw.character, 32) : null,
           status: Model.STATUSES.indexOf(raw.status) >= 0 ? raw.status : 'alive',
+          traveller: old ? !!old.traveller : false,
         };
       });
       if (next.length === 0 && this.doc.players.length > 0 && !body.allowEmpty) {
