@@ -483,7 +483,7 @@ async function handleApi(req, res, url) {
       } catch (e) {
         all = [];
       }
-      const items = all.filter((x) => (x.tab || 1) === tab);
+      const items = all.filter((x) => (x.tabs || [x.tab || 1]).indexOf(tab) >= 0);
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
       res.end(JSON.stringify({ status: 200, cache_flag: 0, reason: '成功', data: { items, total: items.length } }));
     });

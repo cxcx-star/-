@@ -7,10 +7,12 @@
    "min_player": 5,
    "max_player": 15,
    "level": 1,
-   "tab": 1,
    "roles_count": 27,
    "author": "官方",
-   "json": "/editions/tb.json"
+   "json": "/editions/tb.json",
+   "tabs": [
+    1
+   ]
   },
   {
    "id": "bmr",
@@ -19,10 +21,12 @@
    "min_player": 5,
    "max_player": 15,
    "level": 2,
-   "tab": 1,
    "roles_count": 30,
    "author": "官方",
-   "json": "/editions/bmr.json"
+   "json": "/editions/bmr.json",
+   "tabs": [
+    1
+   ]
   },
   {
    "id": "snv",
@@ -31,10 +35,12 @@
    "min_player": 5,
    "max_player": 15,
    "level": 3,
-   "tab": 1,
    "roles_count": 30,
    "author": "官方",
-   "json": "/editions/snv.json"
+   "json": "/editions/snv.json",
+   "tabs": [
+    1
+   ]
   },
   {
    "id": "hdcs",
@@ -43,10 +49,12 @@
    "min_player": 5,
    "max_player": 15,
    "level": 3,
-   "tab": 1,
    "roles_count": 26,
    "author": "官方",
-   "json": "/editions/hdcs.json"
+   "json": "/editions/hdcs.json",
+   "tabs": [
+    1
+   ]
   },
   {
    "id": "exp",
@@ -55,10 +63,12 @@
    "min_player": 5,
    "max_player": 15,
    "level": 4,
-   "tab": 1,
    "roles_count": 68,
    "author": "官方",
-   "json": "/editions/exp.json"
+   "json": "/editions/exp.json",
+   "tabs": [
+    1
+   ]
   },
   {
    "id": "ngj",
@@ -67,10 +77,12 @@
    "min_player": 5,
    "max_player": 6,
    "level": 1,
-   "tab": 1,
    "roles_count": 11,
    "author": "官方",
-   "json": "/editions/ngj.json"
+   "json": "/editions/ngj.json",
+   "tabs": [
+    1
+   ]
   },
   {
    "id": "syyl",
@@ -79,10 +91,13 @@
    "min_player": 5,
    "max_player": 20,
    "level": 4,
-   "tab": 2,
    "roles_count": 24,
    "author": "社区",
-   "json": "/editions/syyl.json"
+   "json": "/editions/syyl.json",
+   "tabs": [
+    1,
+    2
+   ]
   },
   {
    "id": "luf",
@@ -91,10 +106,13 @@
    "min_player": 7,
    "max_player": 7,
    "level": 3,
-   "tab": 2,
    "roles_count": 11,
    "author": "社区",
-   "json": "/editions/luf.json"
+   "json": "/editions/luf.json",
+   "tabs": [
+    1,
+    2
+   ]
   }
  ],
  "total": 8

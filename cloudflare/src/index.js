@@ -420,7 +420,7 @@ async function route(req, env) {
       } catch (e) {
         all = [];
       }
-      const items = all.filter((x) => (x.tab || 1) === tab);
+      const items = all.filter((x) => (x.tabs || [x.tab || 1]).indexOf(tab) >= 0);
       return json({ status: 200, cache_flag: 0, reason: '成功', data: { items, total: items.length } });
     }
 
