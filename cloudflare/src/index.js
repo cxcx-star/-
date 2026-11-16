@@ -325,6 +325,12 @@ export class RoomDO {
         Model.relayoutAuto(this.doc);
         await this.commit();
       }
+      const scriptName = typeof body.scriptName === 'string' ? Model.text(body.scriptName, 20) : '';
+      if (scriptName && scriptName !== this.doc.meta.scriptName) {
+        this.doc.meta.scriptName = scriptName;
+        this.doc.rev = (Number(this.doc.rev) || 0) + 1;
+        await this.commit();
+      }
       return json({ ok: true, players: this.doc.players.length });
     }
 
@@ -400,7 +406,22 @@ async function route(req, env) {
       });
     }
     if (p === '/ct/grimoire_edition_list/') {
-      return json({ status: 200, cache_flag: 0, reason: '成功', data: { items: [], total: 0 } });
+      let body = {};
+      try {
+        body = (await req.json()) || {};
+      } catch (e) {
+        body = {};
+      }
+      const tab = Number(body.tab) === 2 ? 2 : 1;
+      const asset = await env.ASSETS.fetch(new Request(new URL('/edition-list.json', url.origin)));
+      let all = [];
+      try {
+        all = (await asset.json()).items || [];
+      } catch (e) {
+        all = [];
+      }
+      const items = all.filter((x) => (x.tab || 1) === tab);
+      return json({ status: 200, cache_flag: 0, reason: '成功', data: { items, total: items.length } });
     }
 
     if (p === '/api/health') {

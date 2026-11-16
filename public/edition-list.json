@@ -1,0 +1,77 @@
+{
+ "items": [
+  {
+   "id": "tb",
+   "name": "暗流涌动",
+   "image": "/gs/oss/data_file/clocktower/web/editions/tb.png",
+   "min_player": 5,
+   "max_player": 15,
+   "level": 1,
+   "tab": 1,
+   "roles_count": 27,
+   "author": "官方",
+   "json": "/editions/tb.json"
+  },
+  {
+   "id": "bmr",
+   "name": "黯月初升",
+   "image": "/gs/oss/data_file/clocktower/web/editions/bmr.png",
+   "min_player": 5,
+   "max_player": 15,
+   "level": 2,
+   "tab": 1,
+   "roles_count": 30,
+   "author": "官方",
+   "json": "/editions/bmr.json"
+  },
+  {
+   "id": "snv",
+   "name": "梦殒春宵",
+   "image": "/gs/oss/data_file/clocktower/web/editions/snv.png",
+   "min_player": 5,
+   "max_player": 15,
+   "level": 3,
+   "tab": 1,
+   "roles_count": 30,
+   "author": "官方",
+   "json": "/editions/snv.json"
+  },
+  {
+   "id": "hdcs",
+   "name": "华灯初上",
+   "image": "/gs/oss/data_file/clocktower/web/editions/custom.png",
+   "min_player": 5,
+   "max_player": 15,
+   "level": 3,
+   "tab": 1,
+   "roles_count": 26,
+   "author": "官方",
+   "json": "/editions/hdcs.json"
+  },
+  {
+   "id": "exp",
+   "name": "实验性角色",
+   "image": "/gs/oss/data_file/clocktower/web/editions/exp.png",
+   "min_player": 5,
+   "max_player": 15,
+   "level": 4,
+   "tab": 1,
+   "roles_count": 68,
+   "author": "官方",
+   "json": "/editions/exp.json"
+  },
+  {
+   "id": "syyl",
+   "name": "山雨欲来",
+   "image": "/gs/oss/data_file/clocktower/web/editions/custom.png",
+   "min_player": 5,
+   "max_player": 20,
+   "level": 4,
+   "tab": 2,
+   "roles_count": 24,
+   "author": "社区",
+   "json": "/editions/syyl.json"
+  }
+ ],
+ "total": 6
+}

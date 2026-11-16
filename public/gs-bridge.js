@@ -53,7 +53,7 @@
     fetch('/api/room/' + code + '/phone', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ players: snap })
+      body: JSON.stringify({ players: snap, scriptName: scriptName() })
     }).then(function (res) {
       inflight = false;
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -147,6 +147,38 @@
     document.body.appendChild(b);
   }
 
+  function scriptName() {
+    try {
+      var st = (store || getStore());
+      var ed = st && st.state && st.state.edition;
+      return (ed && ed.name) || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  /* 当前剧本：内置剧本用 edition，自定义/缝合剧本用角色 id 列表 */
+  function scriptQuery() {
+    try {
+      var st = (store || getStore());
+      if (!st || !st.state) return '';
+      var ed = st.state.edition || {};
+      var custom = [];
+      try {
+        custom = (st.state.customRoles || []).map(function (r) { return r && r.id; }).filter(Boolean);
+      } catch (e) {
+        custom = [];
+      }
+      var q = [];
+      if (custom.length) q.push('roles=' + encodeURIComponent(custom.join(',')));
+      else if (ed.id && ed.id !== 'custom') q.push('edition=' + encodeURIComponent(ed.id));
+      if (ed.name) q.push('name=' + encodeURIComponent(ed.name));
+      return q.length ? ('?' + q.join('&')) : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
   /* 提示工具用页内浮层打开，关掉就回到魔典原状（不会离开这一页） */
   var hintLayer = null;
   function openHint() {
@@ -163,33 +195,9 @@
       frame.id = 'gs-hint-frame';
       frame.setAttribute('title', '信息提示');
       frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;background:#08070b';
-      frame.src = '/xrh';
-
-      var close = document.createElement('button');
-      close.type = 'button';
-      close.textContent = '关闭';
-      close.style.cssText = [
-        'position:absolute',
-        'right:12px',
-        'top:calc(10px + env(safe-area-inset-top))',
-        'z-index:2',
-        'padding:9px 14px',
-        'border-radius:99px',
-        'border:1px solid rgba(217,185,120,.45)',
-        'background:rgba(16,12,18,.9)',
-        'color:#f0e2c4',
-        'font:600 13px/1 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif',
-        'letter-spacing:.08em',
-        '-webkit-tap-highlight-color:transparent'
-      ].join(';');
-      close.addEventListener('click', function (ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        hintLayer.style.display = 'none';
-      });
+      frame.src = '/xrh' + scriptQuery();
 
       hintLayer.appendChild(frame);
-      hintLayer.appendChild(close);
       document.body.appendChild(hintLayer);
 
       /* 工具里按 Esc 或自己退出时也能关掉浮层 */
@@ -197,8 +205,10 @@
         if (ev && ev.data === 'xrh-close') hintLayer.style.display = 'none';
       });
     }
+    var fr = document.getElementById('gs-hint-frame');
+    if (fr) fr.src = '/xrh' + scriptQuery();
     hintLayer.style.display = 'block';
-    push(true);
+    if (hasRoom) push(true);
   }
 
   if (hasRoom) {

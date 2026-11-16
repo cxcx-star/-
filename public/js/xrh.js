@@ -24,9 +24,16 @@
     traveler: '旅行者', fabled: '传奇'
   };
 
-  var roles = [];          // {id,name,team,image}
+  var roles = [];          // 全部角色
+  var pool = [];           // 按当前剧本筛过的角色
   var active = null;       // 正在选角色的短语
   var selected = [];       // 已选角色（多选时用）
+
+  /* 从魔典带过来的剧本信息：?edition=tb 或 ?roles=id1,id2（自定义剧本） */
+  var query = new URLSearchParams(location.search);
+  var onlyEdition = (query.get('edition') || '').toLowerCase();
+  var onlyRoles = (query.get('roles') || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+  var scriptName = query.get('name') || '';
 
   /* ---------- 数据 ---------- */
   function loadRoles() {
@@ -41,13 +48,34 @@
               id: r.id,
               name: r.name,
               team: r.team || '',
+              edition: r.edition || '',
               image: String(r.image || '').replace(/^\/oss\//, '/gs/oss/')
             };
           })
           .sort(function (a, b) { return a.name.localeCompare(b.name, 'zh'); });
+        buildPool();
         return roles;
       })
-      .catch(function () { roles = []; });
+      .catch(function () {
+        roles = [];
+        pool = [];
+      });
+  }
+
+  function buildPool() {
+    if (onlyRoles.length) {
+      var byId = {};
+      roles.forEach(function (r) { byId[r.id] = r; });
+      pool = onlyRoles.map(function (id) { return byId[id]; }).filter(Boolean);
+      if (!pool.length) pool = roles.slice();
+      return;
+    }
+    if (onlyEdition && onlyEdition !== 'custom') {
+      var subset = roles.filter(function (r) { return (r.edition || '') === onlyEdition; });
+      pool = subset.length ? subset : roles.slice();
+      return;
+    }
+    pool = roles.slice();
   }
 
   /* ---------- 网格 ---------- */
@@ -65,11 +93,18 @@
   }
 
   /* ---------- 选角色 ---------- */
+  var TEAM_ORDER = { townsfolk: 0, outsider: 1, minion: 2, demon: 3, traveler: 4, fabled: 5 };
+
   function renderRoles(filter) {
     var box = $('#roles');
     var kw = String(filter || '').trim();
     box.innerHTML = '';
-    roles.forEach(function (r) {
+    pool.slice().sort(function (a, b) {
+      var da = TEAM_ORDER[a.team] == null ? 9 : TEAM_ORDER[a.team];
+      var db = TEAM_ORDER[b.team] == null ? 9 : TEAM_ORDER[b.team];
+      if (da !== db) return da - db;
+      return a.name.localeCompare(b.name, 'zh');
+    }).forEach(function (r) {
       if (kw && r.name.indexOf(kw) < 0 && r.id.indexOf(kw) < 0) return;
       var b = document.createElement('button');
       b.type = 'button';
@@ -96,6 +131,11 @@
     showPhrase(active, r.name);
   }
 
+  function setClose(visible) {
+    var b = document.getElementById('x-close');
+    if (b) b.style.display = visible ? '' : 'none';
+  }
+
   function start(p) {
     if (!p.slot) { showPhrase(p, ''); return; }
     active = p;
@@ -106,13 +146,14 @@
     renderRoles('');
     $('#sheet').hidden = false;
     $('#back').hidden = false;
+    setClose(false);
     setTimeout(function () { try { $('#search').focus(); } catch (e) {} }, 60);
   }
 
   function closeSheet() {
     $('#sheet').hidden = true;
     active = null;
-    if ($('#show').hidden) $('#back').hidden = true;
+    if ($('#show').hidden) { $('#back').hidden = true; setClose(true); }
   }
 
   /* ---------- 展示 ---------- */
@@ -129,12 +170,13 @@
     $('#showText').innerHTML = text;
     $('#show').hidden = false;
     $('#back').hidden = false;
+    setClose(false);
     if (navigator.vibrate) { try { navigator.vibrate(14); } catch (e) {} }
   }
 
   function closeShow() {
     $('#show').hidden = true;
-    if ($('#sheet').hidden) $('#back').hidden = true;
+    if ($('#sheet').hidden) { $('#back').hidden = true; setClose(true); }
   }
 
   /* ---------- 事件 ---------- */
@@ -158,6 +200,39 @@
     try { if (window.self !== window.top) window.parent.postMessage('xrh-close', '*'); } catch (err) { /* noop */ }
   });
 
+  function updateSub() {
+    var sub = document.querySelector('.x-sub');
+    if (!sub) return;
+    var label = scriptName;
+    if (!label && onlyEdition) {
+      var map = { tb: '暗流涌动', bmr: '黯月初升', snv: '梦殒春宵', hdcs: '华灯初上', exp: '实验性角色', syyl: '山雨欲来' };
+      label = map[onlyEdition] || '';
+    }
+    sub.textContent = label ? ('当前剧本：' + label + ' · 点一条递给玩家') : '点一条，把屏幕递给玩家';
+  }
+
+  /* 被魔典浮层内嵌时，自己在右上角提供一个「关闭」 */
+  var embedded = (function () {
+    try { return window.self !== window.top; } catch (err) { return true; }
+  })();
+
+  function addEmbeddedClose() {
+    if (!embedded || document.getElementById('x-close')) return;
+    var b = document.createElement('button');
+    b.id = 'x-close';
+    b.type = 'button';
+    b.className = 'x-close';
+    b.textContent = '关闭';
+    b.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      try { window.parent.postMessage('xrh-close', '*'); } catch (err) { /* noop */ }
+    });
+    document.body.appendChild(b);
+  }
+
   renderGrid();
+  updateSub();
+  addEmbeddedClose();
   loadRoles();
 })();

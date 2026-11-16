@@ -466,8 +466,27 @@ async function handleApi(req, res, url) {
       res.end(buf);
     });
   }
+  /* 剧本列表：官方剧本 / 缝合剧本，供官方魔典的「选择剧本」使用 */
   if (p === '/ct/grimoire_edition_list/') {
-    return json(res, 200, { status: 200, cache_flag: 0, reason: '成功', data: { items: [], total: 0 } });
+    let body = {};
+    try {
+      body = JSON.parse(await readBody(req)) || {};
+    } catch (err) {
+      body = {};
+    }
+    const tab = Number(body.tab) === 2 ? 2 : 1;
+    return fs.readFile(path.join(PUBLIC, 'edition-list.json'), (err, buf) => {
+      if (err) return json(res, 500, { status: 500, reason: '剧本列表缺失' });
+      let all = [];
+      try {
+        all = JSON.parse(buf.toString('utf8')).items || [];
+      } catch (e) {
+        all = [];
+      }
+      const items = all.filter((x) => (x.tab || 1) === tab);
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({ status: 200, cache_flag: 0, reason: '成功', data: { items, total: items.length } }));
+    });
   }
 
   if (p === '/api/health') {
@@ -575,7 +594,7 @@ async function handleApi(req, res, url) {
         name: Model.text(raw.name, 24) || ('玩家' + seat),
         character: raw.character ? Model.text(raw.character, 32) : null,
         status: Model.STATUSES.indexOf(raw.status) >= 0 ? raw.status : 'alive',
-      traveller: old ? !!old.traveller : false
+        traveller: old ? !!old.traveller : false
       };
     });
     // 防止另一个浏览器打开空的官方魔典，把桌上已有的牌全冲掉
@@ -588,6 +607,15 @@ async function handleApi(req, res, url) {
       room.doc.rev = (Number(room.doc.rev) || 0) + 1;
       room.doc.updatedAt = Date.now();
       Model.relayoutAuto(room.doc);
+      scheduleSave(room);
+      broadcast(room, 'state', payload(room));
+    }
+    // 手机换了剧本，平板的标题也跟着换
+    const scriptName = typeof body.scriptName === 'string' ? Model.text(body.scriptName, 20) : '';
+    if (scriptName && scriptName !== room.doc.meta.scriptName) {
+      room.doc.meta.scriptName = scriptName;
+      room.doc.rev = (Number(room.doc.rev) || 0) + 1;
+      room.doc.updatedAt = Date.now();
       scheduleSave(room);
       broadcast(room, 'state', payload(room));
     }
