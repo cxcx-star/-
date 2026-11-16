@@ -7,7 +7,7 @@
 
   var q = new URLSearchParams(location.search);
   var code = String(q.get('room') || '').toUpperCase();
-  if (!/^[A-Z0-9]{4}$/.test(code)) return;
+  var hasRoom = /^[A-Z0-9]{4}$/.test(code);
 
   var store = null;
   var last = '';
@@ -201,15 +201,55 @@
     push(true);
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
-  else start();
+  if (hasRoom) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+    else start();
+  }
 
-  if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { addSeatButton(); hintButton(); });
-    else { addSeatButton(); hintButton(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupButtons);
+  else setupButtons();
+
+  function homeButton() {
+    if (document.getElementById('gs-home')) return;
+    var b = document.createElement('button');
+    b.id = 'gs-home';
+    b.type = 'button';
+    b.textContent = '首页';
+    b.setAttribute('aria-label', '回首页');
+    b.style.cssText = [
+      'position:fixed',
+      'right:14px',
+      'bottom:calc(112px + env(safe-area-inset-bottom))',
+      'z-index:2147483000',
+      'padding:10px 15px',
+      'border-radius:99px',
+      'border:1px solid rgba(226,200,150,.35)',
+      'background:rgba(18,14,10,.8)',
+      'color:#cfc0a4',
+      'font:600 13px/1 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif',
+      'letter-spacing:.08em',
+      'box-shadow:0 10px 26px -10px #000',
+      '-webkit-backdrop-filter:blur(6px)',
+      'backdrop-filter:blur(6px)',
+      '-webkit-tap-highlight-color:transparent'
+    ].join(';');
+    b.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      location.href = '/';
+    });
+    document.body.appendChild(b);
+  }
+
+  /* 触屏设备：补上有用的浮层按钮（与有没有房间码无关） */
+  function setupButtons() {
+    if (!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches)) return;
+    addSeatButton();
+    hintButton();
+    homeButton();
   }
 
   document.addEventListener('visibilitychange', function () {
-    if (!document.hidden) push(true);
+    if (hasRoom && !document.hidden) push(true);
   });
 })();
