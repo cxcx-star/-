@@ -6,10 +6,15 @@ export async function onRequest(context) {
   const { request } = context;
   const url = new URL(request.url);
   try {
-    const res = await fetch(UPSTREAM + url.pathname + url.search, {
+    const init = {
       method: request.method,
       headers: { 'Content-Type': request.headers.get('Content-Type') || 'application/json' },
-    });
+    };
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      const buf = await request.arrayBuffer();
+      if (buf.byteLength) init.body = buf;
+    }
+    const res = await fetch(UPSTREAM + url.pathname + url.search, init);
     const body = await res.arrayBuffer();
     return new Response(body, {
       status: res.status,
