@@ -169,8 +169,20 @@
       } catch (e) {
         custom = [];
       }
+      /* 以魔典当前的角色池为准（内置剧本、自制剧本都适用） */
+      var ids = [];
+      try {
+        var pool = st.state.roles;
+        if (pool && typeof pool.forEach === 'function') {
+          pool.forEach(function (r, k) { ids.push(r && r.id ? r.id : k); });
+        }
+      } catch (e) {
+        ids = [];
+      }
+      if (!ids.length && custom.length) ids = custom;
+
       var q = [];
-      if (custom.length) q.push('roles=' + encodeURIComponent(custom.join(',')));
+      if (ids.length) q.push('roles=' + encodeURIComponent(ids.join(',')));
       else if (ed.id && ed.id !== 'custom') q.push('edition=' + encodeURIComponent(ed.id));
       if (ed.name) q.push('name=' + encodeURIComponent(ed.name));
       return q.length ? ('?' + q.join('&')) : '';

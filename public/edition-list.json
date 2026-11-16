@@ -61,6 +61,18 @@
    "json": "/editions/exp.json"
   },
   {
+   "id": "ngj",
+   "name": "无上愉悦",
+   "image": "/gs/oss/data_file/clocktower/web/editions/custom.png",
+   "min_player": 5,
+   "max_player": 6,
+   "level": 1,
+   "tab": 1,
+   "roles_count": 11,
+   "author": "官方",
+   "json": "/editions/ngj.json"
+  },
+  {
    "id": "syyl",
    "name": "山雨欲来",
    "image": "/gs/oss/data_file/clocktower/web/editions/custom.png",
@@ -71,7 +83,19 @@
    "roles_count": 24,
    "author": "社区",
    "json": "/editions/syyl.json"
+  },
+  {
+   "id": "luf",
+   "name": "窃窃私语",
+   "image": "/gs/oss/data_file/clocktower/web/editions/custom.png",
+   "min_player": 7,
+   "max_player": 7,
+   "level": 3,
+   "tab": 2,
+   "roles_count": 11,
+   "author": "社区",
+   "json": "/editions/luf.json"
   }
  ],
- "total": 6
+ "total": 8
 }
