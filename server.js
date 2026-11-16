@@ -662,18 +662,31 @@ function serveStatic(req, res, pathname) {
     if (err && err.code === 'EISDIR') {
       return serveStatic(req, res, rel.replace(/\/?$/, '/') + 'index.html');
     }
-    if (err) {
-      res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
-      return res.end('<meta charset="utf-8"><title>404</title><body style="background:#0a090d;color:#d9b978;font:16px/1.8 system-ui;padding:60px">页面不存在。<a style="color:#f2dfae" href="/">回到首页</a></body>');
+    // 与 Cloudflare Pages 对齐：/square 也能拿到 square.html
+    if (err && err.code === 'ENOENT' && !path.extname(file)) {
+      return fs.readFile(file + '.html', (err2, buf2) => {
+        if (err2) return notFound(res);
+        sendFile(req, res, file + '.html', buf2);
+      });
     }
-    res.writeHead(200, {
-      'Content-Type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream',
-      'Content-Length': buf.length,
-      'Cache-Control': 'no-cache'
-    });
-    if (req.method === 'HEAD') return res.end();
-    res.end(buf);
+    if (err) return notFound(res);
+    sendFile(req, res, file, buf);
   });
+}
+
+function notFound(res) {
+  res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end('<meta charset="utf-8"><title>404</title><body style="background:#0a090d;color:#d9b978;font:16px/1.8 system-ui;padding:60px">页面不存在。<a style="color:#f2dfae" href="/">回到首页</a></body>');
+}
+
+function sendFile(req, res, file, buf) {
+  res.writeHead(200, {
+    'Content-Type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream',
+    'Content-Length': buf.length,
+    'Cache-Control': 'no-cache'
+  });
+  if (req.method === 'HEAD') return res.end();
+  res.end(buf);
 }
 
 /* ---------- 启动 ---------- */

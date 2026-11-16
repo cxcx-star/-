@@ -123,6 +123,9 @@
     el.addEventListener('click', function () { chooseRole(el.dataset.role); });
   });
 
+  var hintBtn = document.getElementById('hintBtn');
+  if (hintBtn) hintBtn.addEventListener('click', function () { window.open('/xrh', '_blank', 'noopener'); });
+
   $('#copyUrl').addEventListener('click', function () {
     copy($('#lanUrl').textContent.trim());
   });

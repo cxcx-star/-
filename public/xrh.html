@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>信息提示 · 血染钟楼</title>
+<meta name="theme-color" content="#08070b">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/xrh.css">
+</head>
+<body>
+
+<button class="x-back" id="back" type="button" hidden>← 返回</button>
+
+<header class="x-head">
+  <h1>信息提示</h1>
+  <p class="x-sub">点一条，把屏幕递给玩家</p>
+</header>
+
+<main class="x-grid" id="grid"></main>
+
+<section class="x-sheet" id="sheet" hidden>
+  <div class="x-sheet-head">
+    <input id="search" type="search" placeholder="搜索角色…" autocomplete="off">
+    <button id="pickCancel" type="button">取消</button>
+  </div>
+  <div class="x-roles" id="roles"></div>
+  <div class="x-sheet-foot">
+    <button class="x-btn" id="pickOk" type="button">确定</button>
+  </div>
+</section>
+
+<section class="x-show" id="show" hidden>
+  <div class="x-show-text" id="showText"></div>
+  <p class="x-show-tip">点任意处返回</p>
+</section>
+
+<script src="/js/xrh.js"></script>
+</body>
+</html>

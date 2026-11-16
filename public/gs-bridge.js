@@ -114,12 +114,46 @@
     document.body.appendChild(b);
   }
 
+  /* 信息提示：说书人常用的一句话提示工具，点开就是大字号，直接递给玩家看 */
+  function hintButton() {
+    if (document.getElementById('gs-hint')) return;
+    var b = document.createElement('button');
+    b.id = 'gs-hint';
+    b.type = 'button';
+    b.textContent = '提示';
+    b.setAttribute('aria-label', '打开信息提示');
+    b.style.cssText = [
+      'position:fixed',
+      'right:14px',
+      'bottom:calc(64px + env(safe-area-inset-bottom))',
+      'z-index:2147483000',
+      'padding:10px 15px',
+      'border-radius:99px',
+      'border:1px solid rgba(204,4,255,.45)',
+      'background:rgba(28,16,34,.86)',
+      'color:#e9d5ff',
+      'font:600 13px/1 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif',
+      'letter-spacing:.08em',
+      'box-shadow:0 10px 26px -10px #000',
+      '-webkit-backdrop-filter:blur(6px)',
+      'backdrop-filter:blur(6px)',
+      '-webkit-tap-highlight-color:transparent'
+    ].join(';');
+    b.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var w = window.open('/xrh', '_blank');
+      if (!w) location.href = '/xrh';
+    });
+    document.body.appendChild(b);
+  }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
 
   if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) {
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addSeatButton);
-    else addSeatButton();
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { addSeatButton(); hintButton(); });
+    else { addSeatButton(); hintButton(); }
   }
 
   document.addEventListener('visibilitychange', function () {
