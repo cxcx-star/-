@@ -151,7 +151,11 @@
   });
 
   window.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') { closeShow(); closeSheet(); }
+    if (e.key !== 'Escape') return;
+    if (!$('#show').hidden) { closeShow(); return; }
+    if (!$('#sheet').hidden) { closeSheet(); return; }
+    // 在魔典的浮层里打开时，Esc 直接通知外层关掉
+    try { if (window.self !== window.top) window.parent.postMessage('xrh-close', '*'); } catch (err) { /* noop */ }
   });
 
   renderGrid();

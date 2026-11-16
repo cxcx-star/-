@@ -142,10 +142,63 @@
     b.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
-      var w = window.open('/xrh', '_blank');
-      if (!w) location.href = '/xrh';
+      openHint();
     });
     document.body.appendChild(b);
+  }
+
+  /* 提示工具用页内浮层打开，关掉就回到魔典原状（不会离开这一页） */
+  var hintLayer = null;
+  function openHint() {
+    if (!hintLayer) {
+      hintLayer = document.createElement('div');
+      hintLayer.id = 'gs-hint-layer';
+      hintLayer.style.cssText = [
+        'position:fixed', 'inset:0', 'z-index:2147483600',
+        'background:#08070b', 'display:none',
+        '-webkit-tap-highlight-color:transparent'
+      ].join(';');
+
+      var frame = document.createElement('iframe');
+      frame.id = 'gs-hint-frame';
+      frame.setAttribute('title', '信息提示');
+      frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;background:#08070b';
+      frame.src = '/xrh';
+
+      var close = document.createElement('button');
+      close.type = 'button';
+      close.textContent = '关闭';
+      close.style.cssText = [
+        'position:absolute',
+        'right:12px',
+        'top:calc(10px + env(safe-area-inset-top))',
+        'z-index:2',
+        'padding:9px 14px',
+        'border-radius:99px',
+        'border:1px solid rgba(217,185,120,.45)',
+        'background:rgba(16,12,18,.9)',
+        'color:#f0e2c4',
+        'font:600 13px/1 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif',
+        'letter-spacing:.08em',
+        '-webkit-tap-highlight-color:transparent'
+      ].join(';');
+      close.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        hintLayer.style.display = 'none';
+      });
+
+      hintLayer.appendChild(frame);
+      hintLayer.appendChild(close);
+      document.body.appendChild(hintLayer);
+
+      /* 工具里按 Esc 或自己退出时也能关掉浮层 */
+      window.addEventListener('message', function (ev) {
+        if (ev && ev.data === 'xrh-close') hintLayer.style.display = 'none';
+      });
+    }
+    hintLayer.style.display = 'block';
+    push(true);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
