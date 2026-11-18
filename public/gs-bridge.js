@@ -313,7 +313,49 @@
     dealButton();
   }
 
+  /* 反向同步：房间里的「座位 → 角色」如果和魔典不一致（比如刚用下发系统抽过），
+     就把房间的角色写回魔典的 store，魔典界面当场刷新。 */
+  var pullInflight = false;
+  function pullRoles() {
+    if (!hasRoom || pullInflight) return;
+    var st = getStore();
+    if (!st) return;
+    pullInflight = true;
+    fetch('/api/room/' + code, { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        pullInflight = false;
+        var list = (d && d.doc && d.doc.players) || [];
+        if (!list.length) return;
+        var state = st.state;
+        var ps = (state.players && state.players.players) || [];
+        var rolesMap = state.roles;
+        if (!rolesMap || typeof rolesMap.get !== 'function') return;
+
+        /* 房间里比魔典多出来的座位，先补上（这样下发完不用手动加座位） */
+        list.forEach(function (rp, i) {
+          if (ps[i]) return;
+          st.commit('players/add', rp.name || ('玩家' + rp.seat));
+          ps = st.state.players.players;
+        });
+
+        list.forEach(function (rp) {
+          if (!rp.character) return;                 // 房间里没角色就不动魔典
+          var sp = ps[rp.seat - 1];
+          if (!sp) return;
+          var have = sp.role && sp.role.id ? sp.role.id : null;
+          if (have === rp.character) return;
+          var role = rolesMap.get(rp.character);
+          if (!role) return;
+          st.commit('players/update', { player: sp, property: 'role', value: role });
+        });
+      })
+      .catch(function () { pullInflight = false; });
+  }
+
+  if (hasRoom) setInterval(pullRoles, 2500);
+
   document.addEventListener('visibilitychange', function () {
-    if (hasRoom && !document.hidden) push(true);
+    if (!document.hidden && hasRoom) { push(true); pullRoles(); }
   });
 })();

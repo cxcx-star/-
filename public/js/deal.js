@@ -21,6 +21,7 @@
   var queue = [];       // 领取顺序（座位数组）
   var pool = [];        // 待领的角色（[{id,name,team,ability,image}]）
   var picked = {};      // seat -> role
+  var seatRole = null;  // 「按已分配角色」时：seat -> role
   var idx = 0;          // 当前队列位置
   var mode = 'assigned';
   var order = 'asc';
@@ -77,7 +78,7 @@
       .then(function (d) {
         var list = (d && d.doc && d.doc.players) || [];
         return list.map(function (p) {
-          return { seat: p.seat, name: p.name || ('玩家' + p.seat), character: p.character || null };
+          return { id: p.id, seat: p.seat, name: p.name || ('玩家' + p.seat), character: p.character || null };
         }).sort(function (a, b) { return a.seat - b.seat; });
       })
       .catch(function () { return []; });
@@ -110,15 +111,17 @@
       : '这个房间还没有座位');
 
     var missing = players.filter(function (p) { return !p.character; }).length;
-    if (mode === 'assigned') {
-      $('#modeHint').textContent = missing
-        ? ('有 ' + missing + ' 个座位还没分配角色，这些位置会从剩余角色里随机补')
-        : '按魔典里已经分配好的角色下发';
+    if (missing) {
+      $('#modeHint').textContent = '还有 ' + missing + ' 个座位没分配角色，先在魔典里分配好再来下发';
+    } else if (mode === 'assigned') {
+      $('#modeHint').textContent = '每个座位领取自己那份角色（不打乱）';
     } else {
-      $('#modeHint').textContent = '把已分配的角色打乱后随机下发';
+      $('#modeHint').textContent = '把魔典里已分配的角色打乱后重新发给座位';
     }
-    $('#btnStart').disabled = players.length === 0;
-    $('#btnStart').textContent = players.length ? ('开始下发 · ' + players.length + ' 人') : '开始下发';
+    $('#btnStart').disabled = players.length === 0 || missing > 0;
+    $('#btnStart').textContent = players.length
+      ? (missing ? ('还有 ' + missing + ' 个座位没角色') : ('开始下发 · ' + players.length + ' 人'))
+      : '开始下发';
   }
 
   /* ---------- 开始 ---------- */
@@ -126,26 +129,23 @@
     var assigned = players.filter(function (p) { return p.character && rolesById[p.character]; })
       .map(function (p) { return rolesById[p.character]; });
 
-    if (mode === 'assigned' && !assigned.length) {
-      mode = 'random';
+    if (assigned.length < players.length) {
+      toast('有座位还没分配角色，先回魔典分配');
       renderSetup();
-      toast('魔典里还没有分配角色，已改用随机下发');
+      return;
     }
 
-    if (mode === 'random' || assigned.length < players.length) {
-      // 以已分配角色为底，不足的部分从当前剧本里随机补
-      var base = assigned.slice();
-      var extra = scriptPool.filter(function (r) {
-        return !base.some(function (x) { return x.id === r.id; });
-      });
-      if (!extra.length) extra = scriptPool.slice();
-      while (base.length < players.length && extra.length) {
-        base.push(extra.splice(Math.floor(Math.random() * extra.length), 1)[0]);
-      }
-      while (base.length < players.length) base.push(base[Math.floor(Math.random() * base.length)]);
-      pool = shuffle(base).slice(0, players.length);
-    } else {
+    /* 池子就是魔典里已分配的那几个角色：随机 = 打乱，按已分配 = 保持原样 */
+    if (mode === 'random') {
       pool = shuffle(assigned);
+      seatRole = null;
+    } else {
+      pool = assigned.slice();
+      seatRole = {};
+      players.forEach(function (p) {
+        var r = rolesById[p.character];
+        if (r) seatRole[p.seat] = r;
+      });
     }
 
     queue = players.slice();
@@ -179,6 +179,13 @@
   }
 
   function renderPick(p) {
+    if (seatRole && seatRole[p.seat]) {
+      var mine = seatRole[p.seat];
+      var at = -1;
+      for (var k = 0; k < pool.length; k++) if (pool[k].id === mine.id) { at = k; break; }
+      reveal(p, mine, at);
+      return;
+    }
     $('#pickTitle').textContent = p.seat + ' 号，请选择一张牌堆';
     $('#pickLeft').textContent = '剩余 ' + pool.length + ' 张';
     var deck = $('#deck');
@@ -197,9 +204,20 @@
     show('scPick');
   }
 
+  /* 把抽到的角色写回房间，魔典和广场会跟着变 */
+  function pushRole(p, role) {
+    if (!/^[A-Z0-9]{4}$/.test(code) || !p.id) return;
+    fetch('/api/room/' + code + '/intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'character', id: p.id, character: role.id })
+    }).catch(function () { /* 离线就跳过 */ });
+  }
+
   function reveal(p, role, i) {
-    pool.splice(i, 1);
+    if (i >= 0 && pool[i] && pool[i].id === role.id) pool.splice(i, 1);
     picked[p.seat] = role;
+    pushRole(p, role);
 
     $('#revealTitle').textContent = p.seat + ' 号，你的身份是';
     $('#roleImg').src = role.image || '';
