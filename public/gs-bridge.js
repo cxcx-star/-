@@ -251,6 +251,7 @@
 
       /* 工具里按 Esc 或自己退出时也能关掉浮层 */
       window.addEventListener('message', function (ev) {
+        if (ev && ev.data === 'deal-applied') { pullRoles(); pullRoles(); }
         if (ev && (ev.data === 'xrh-close' || ev.data === 'deal-close')) hintLayer.style.display = 'none';
       });
     }

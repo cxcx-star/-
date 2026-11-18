@@ -15,6 +15,9 @@ const Model =
 
 if (!Model || !Model.newDoc) throw new Error('model.js 未能载入');
 
+/* 闲置房间 TTL：一小时没有操作就清除 */
+const ROOM_TTL = 60 * 60 * 1000;
+
 const JSON_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',
   'Cache-Control': 'no-store',
@@ -446,7 +449,18 @@ async function route(req, env) {
     if (p === '/api/rooms') {
       if (req.method === 'GET') {
         const r = await indexFetch(env, '/list');
-        return json(await r.json());
+        const data = await r.json();
+        const now = Date.now();
+        const fresh = [];
+        for (const room of data.rooms || []) {
+          if (now - (room.updatedAt || 0) > ROOM_TTL) {
+            // 一个小时没人动过：清掉这个房间（异步，不阻塞返回）
+            roomStub(env, room.code).fetch('https://do/r?code=' + room.code, { method: 'DELETE' }).catch(() => {});
+          } else {
+            fresh.push(room);
+          }
+        }
+        return json({ rooms: fresh });
       }
       if (req.method === 'POST') {
         let code = '';

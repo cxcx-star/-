@@ -240,8 +240,17 @@
 
   /* ---------- 完成 ---------- */
   function finish() {
+    // 收尾再写一遍，防止中途某次网络抖动漏写
+    Object.keys(picked).forEach(function (seat) {
+      var p = null;
+      players.forEach(function (x) { if (x.seat === Number(seat)) p = x; });
+      if (p && picked[seat]) pushRole(p, picked[seat]);
+    });
     if (embedded) {
-      try { window.parent.postMessage('deal-close', '*'); } catch (e) { /* noop */ }
+      try { window.parent.postMessage('deal-applied', '*'); } catch (e) { /* noop */ }
+      setTimeout(function () {
+        try { window.parent.postMessage('deal-close', '*'); } catch (e) { /* noop */ }
+      }, 260);
       return;
     }
     if (history.length > 1) history.back();

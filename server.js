@@ -717,6 +717,28 @@ function sendFile(req, res, file, buf) {
   res.end(buf);
 }
 
+/* ---------- 闲置房间清理：一小时没人动过就删掉 ---------- */
+
+const ROOM_TTL = Number(process.env.CT_ROOM_TTL) || 60 * 60 * 1000;
+const SWEEP_EVERY = Number(process.env.CT_SWEEP_EVERY) || 5 * 60 * 1000;
+
+function sweepRooms() {
+  const now = Date.now();
+  let removed = 0;
+  for (const [code, room] of Array.from(rooms.entries())) {
+    if (room.clients && room.clients.size) continue;          // 还有人连着，留着
+    const seen = Number(room.doc.updatedAt) || 0;
+    if (now - seen < ROOM_TTL) continue;
+    rooms.delete(code);
+    removed++;
+    fsp.unlink(roomFile(code)).catch(() => {});
+  }
+  if (removed) console.log('[sweep] 清理了 ' + removed + ' 个闲置房间');
+}
+
+setInterval(sweepRooms, SWEEP_EVERY).unref();
+setTimeout(sweepRooms, 3000).unref();
+
 /* ---------- 启动 ---------- */
 
 let httpsServer = null;
