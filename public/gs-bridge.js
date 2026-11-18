@@ -175,7 +175,11 @@
     b.addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
-      openOverlay('/deal' + (hasRoom ? '?room=' + encodeURIComponent(code) : ''));
+      var q = [];
+      if (hasRoom) q.push('room=' + encodeURIComponent(code));
+      var sq = scriptQuery().replace(/^\?/, '');
+      if (sq) q.push(sq);
+      openOverlay('/deal' + (q.length ? '?' + q.join('&') : ''));
     });
     document.body.appendChild(b);
   }

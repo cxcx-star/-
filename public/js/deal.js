@@ -11,7 +11,12 @@
 
   var TEAM = { townsfolk: '镇民', outsider: '外来者', minion: '爪牙', demon: '恶魔', traveler: '旅行者', fabled: '传奇' };
 
+  var onlyRoles = (q.get('roles') || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+  var onlyEdition = (q.get('edition') || '').toLowerCase();
+  var scriptName = q.get('name') || '';
+
   var rolesById = {};   // id -> {name, team, ability, image}
+  var scriptPool = [];  // 当前剧本的角色（随机模式用这个池）
   var players = [];     // [{seat, name, character}]
   var queue = [];       // 领取顺序（座位数组）
   var pool = [];        // 待领的角色（[{id,name,team,ability,image}]）
@@ -45,12 +50,24 @@
             id: r.id,
             name: r.name,
             team: r.team || '',
+            edition: r.edition || '',
             ability: r.ability || '',
             image: String(r.image || '').replace(/^\/oss\//, '/gs/oss/')
           };
         });
+        buildScriptPool();
       })
       .catch(function () { rolesById = {}; });
+  }
+
+  function buildScriptPool() {
+    if (onlyRoles.length) {
+      scriptPool = onlyRoles.map(function (id) { return rolesById[id]; }).filter(Boolean);
+    } else if (onlyEdition) {
+      scriptPool = Object.keys(rolesById).map(function (k) { return rolesById[k]; })
+        .filter(function (r) { return r.edition === onlyEdition; });
+    }
+    if (!scriptPool.length) scriptPool = Object.keys(rolesById).map(function (k) { return rolesById[k]; });
   }
 
   function loadRoom() {
@@ -88,9 +105,9 @@
       b.classList.toggle('on', b.dataset.v === order);
     });
 
-    $('#castLine').textContent = players.length
+    $('#castLine').textContent = (scriptName ? scriptName + ' · ' : '') + (players.length
       ? ('共 ' + players.length + ' 人 · ' + players.map(function (p) { return p.seat + '号'; }).join(' '))
-      : '这个房间还没有座位';
+      : '这个房间还没有座位');
 
     var missing = players.filter(function (p) { return !p.character; }).length;
     if (mode === 'assigned') {
@@ -109,10 +126,22 @@
     var assigned = players.filter(function (p) { return p.character && rolesById[p.character]; })
       .map(function (p) { return rolesById[p.character]; });
 
+    if (mode === 'assigned' && !assigned.length) {
+      mode = 'random';
+      renderSetup();
+      toast('魔典里还没有分配角色，已改用随机下发');
+    }
+
     if (mode === 'random' || assigned.length < players.length) {
-      // 以已分配角色为底，不足的部分随机补（避免完全空池）
+      // 以已分配角色为底，不足的部分从当前剧本里随机补
       var base = assigned.slice();
-      if (!base.length) base = Object.keys(rolesById).map(function (k) { return rolesById[k]; });
+      var extra = scriptPool.filter(function (r) {
+        return !base.some(function (x) { return x.id === r.id; });
+      });
+      if (!extra.length) extra = scriptPool.slice();
+      while (base.length < players.length && extra.length) {
+        base.push(extra.splice(Math.floor(Math.random() * extra.length), 1)[0]);
+      }
       while (base.length < players.length) base.push(base[Math.floor(Math.random() * base.length)]);
       pool = shuffle(base).slice(0, players.length);
     } else {
