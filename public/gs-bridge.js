@@ -147,6 +147,39 @@
     document.body.appendChild(b);
   }
 
+  /* 下发身份：传递手机领牌 */
+  function dealButton() {
+    if (document.getElementById('gs-deal')) return;
+    var b = document.createElement('button');
+    b.id = 'gs-deal';
+    b.type = 'button';
+    b.textContent = '下发';
+    b.setAttribute('aria-label', '下发身份');
+    b.style.cssText = [
+      'position:fixed',
+      'right:14px',
+      'bottom:calc(160px + env(safe-area-inset-bottom))',
+      'z-index:2147483000',
+      'padding:10px 15px',
+      'border-radius:99px',
+      'border:1px solid rgba(127,201,138,.45)',
+      'background:rgba(16,28,20,.86)',
+      'color:#cdebd2',
+      'font:600 13px/1 -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif',
+      'letter-spacing:.08em',
+      'box-shadow:0 10px 26px -10px #000',
+      '-webkit-backdrop-filter:blur(6px)',
+      'backdrop-filter:blur(6px)',
+      '-webkit-tap-highlight-color:transparent'
+    ].join(';');
+    b.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openOverlay('/deal' + (hasRoom ? '?room=' + encodeURIComponent(code) : ''));
+    });
+    document.body.appendChild(b);
+  }
+
   function scriptName() {
     try {
       var st = (store || getStore());
@@ -191,9 +224,9 @@
     }
   }
 
-  /* 提示工具用页内浮层打开，关掉就回到魔典原状（不会离开这一页） */
+  /* 工具页用页内浮层打开，关掉就回到魔典原状（不会离开这一页） */
   var hintLayer = null;
-  function openHint() {
+  function openOverlay(target) {
     if (!hintLayer) {
       hintLayer = document.createElement('div');
       hintLayer.id = 'gs-hint-layer';
@@ -205,22 +238,26 @@
 
       var frame = document.createElement('iframe');
       frame.id = 'gs-hint-frame';
-      frame.setAttribute('title', '信息提示');
+      frame.setAttribute('title', '工具');
       frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;background:#08070b';
-      frame.src = '/xrh' + scriptQuery();
+      frame.src = target || '/xrh';
 
       hintLayer.appendChild(frame);
       document.body.appendChild(hintLayer);
 
       /* 工具里按 Esc 或自己退出时也能关掉浮层 */
       window.addEventListener('message', function (ev) {
-        if (ev && ev.data === 'xrh-close') hintLayer.style.display = 'none';
+        if (ev && (ev.data === 'xrh-close' || ev.data === 'deal-close')) hintLayer.style.display = 'none';
       });
     }
     var fr = document.getElementById('gs-hint-frame');
-    if (fr) fr.src = '/xrh' + scriptQuery();
+    if (fr && target) fr.src = target;
     hintLayer.style.display = 'block';
     if (hasRoom) push(true);
+  }
+
+  function openHint() {
+    openOverlay('/xrh' + scriptQuery());
   }
 
   if (hasRoom) {
@@ -269,6 +306,7 @@
     addSeatButton();
     hintButton();
     homeButton();
+    dealButton();
   }
 
   document.addEventListener('visibilitychange', function () {

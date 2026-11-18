@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>下发身份 · 血染钟楼</title>
+<meta name="theme-color" content="#07060a">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/css/deal.css">
+</head>
+<body>
+
+<!-- 1. 设置 -->
+<section class="screen" id="scSetup">
+  <div class="hd">
+    <h1>下发身份</h1>
+    <p>手机依次传给每位玩家，各自翻一张看自己的身份</p>
+  </div>
+
+  <div class="mid">
+    <div class="opt">
+      <span>身份发放</span>
+      <div class="seg" id="segMode">
+        <button type="button" data-v="assigned">按已分配角色</button>
+        <button type="button" data-v="random">完全随机</button>
+      </div>
+    </div>
+
+    <div class="opt">
+      <span>设备传递顺序</span>
+      <div class="seg" id="segOrder">
+        <button type="button" data-v="asc">顺序</button>
+        <button type="button" data-v="desc">逆序</button>
+        <button type="button" data-v="shuffle">随机</button>
+      </div>
+    </div>
+
+    <p class="cast" id="castLine">正在读取座位…</p>
+  </div>
+
+  <div class="foot">
+    <button class="btn" id="btnStart" type="button" disabled>开始下发</button>
+  </div>
+  <p class="hint-once" id="modeHint">按魔典里已经分配好的角色下发</p>
+</section>
+
+<!-- 2. 选牌 -->
+<section class="screen" id="scPick" hidden>
+  <div class="hd">
+    <h1 id="pickTitle">1 号，请选择一张牌堆</h1>
+    <p id="pickLeft">剩余 0 张</p>
+  </div>
+  <div class="mid auto">
+    <div class="deck" id="deck"></div>
+  </div>
+</section>
+
+<!-- 3. 揭示身份 -->
+<section class="screen" id="scReveal" hidden>
+  <div class="hd">
+    <h1 id="revealTitle">1 号，你的身份是</h1>
+  </div>
+  <div class="mid">
+    <div class="rolebox">
+      <img id="roleImg" alt="">
+      <h2 id="roleName">—</h2>
+      <div class="team" id="roleTeam">—</div>
+      <p class="ability" id="roleAbility"></p>
+    </div>
+  </div>
+  <div class="foot">
+    <button class="btn" id="btnNext" type="button">记住了，将设备交给下一位</button>
+  </div>
+</section>
+
+<!-- 4. 交接 -->
+<section class="screen pass" id="scPass" hidden>
+  <div class="mid">
+    <p class="sub" style="margin-bottom:10px">请将设备交给</p>
+    <div class="num" id="passNum">2</div>
+    <p class="sub" id="passName">2 号</p>
+  </div>
+  <div class="foot">
+    <button class="btn" id="btnClaim" type="button">开始领取</button>
+  </div>
+</section>
+
+<!-- 5. 完成 -->
+<section class="screen" id="scDone" hidden>
+  <div class="mid done">
+    <div class="tick">✓</div>
+    <h2>所有身份已领取</h2>
+    <p id="doneSub">可以开始游戏了</p>
+  </div>
+  <div class="foot">
+    <button class="btn" id="btnFinish" type="button">说书人：完成下发</button>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script src="/js/deal.js"></script>
+</body>
+</html>

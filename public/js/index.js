@@ -126,6 +126,14 @@
   var hintBtn = document.getElementById('hintBtn');
   if (hintBtn) hintBtn.addEventListener('click', function () { window.open('/xrh', '_blank', 'noopener'); });
 
+  var dealBtn = document.getElementById('dealBtn');
+  if (dealBtn) dealBtn.addEventListener('click', function () {
+    refresh().then(function (rooms) {
+      var code = (rooms && rooms[0] && rooms[0].code) || '';
+      window.open('/deal' + (code ? '?room=' + code : ''), '_blank', 'noopener');
+    }).catch(function () { window.open('/deal', '_blank', 'noopener'); });
+  });
+
   $('#copyUrl').addEventListener('click', function () {
     copy($('#lanUrl').textContent.trim());
   });
