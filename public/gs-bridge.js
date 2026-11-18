@@ -34,7 +34,10 @@
     });
   }
 
+  var applying = false;
+
   function push(force) {
+    if (applying) return;
     if (!store) {
       store = getStore();
       if (!store) return;
@@ -340,6 +343,9 @@
           ps = st.state.players.players;
         });
 
+        /* 先把所有要改的座位算出来，再一次性提交。
+           否则每提交一个都会触发一次 push，把没改完的旧角色写回房间。 */
+        var changes = [];
         list.forEach(function (rp) {
           if (!rp.character) return;                 // 房间里没角色就不动魔典
           var sp = ps[rp.seat - 1];
@@ -348,8 +354,23 @@
           if (have === rp.character) return;
           var role = rolesMap.get(rp.character);
           if (!role) return;
-          st.commit('players/update', { player: sp, property: 'role', value: role });
+          changes.push({ player: sp, role: role });
         });
+        if (!changes.length) return;
+
+        applying = true;
+        try {
+          changes.forEach(function (c) {
+            st.commit('players/update', { player: c.player, property: 'role', value: c.role });
+          });
+        } finally {
+          /* 等这一轮 UI 更新完再放开，并强制推送一次，让房间和魔典完全一致 */
+          setTimeout(function () {
+            applying = false;
+            last = '';
+            push(true);
+          }, 120);
+        }
       })
       .catch(function () { pullInflight = false; });
   }
