@@ -9,6 +9,10 @@
 - **断网可用**：官方魔典和角色表都托管在本地
 - **两种部署**：局域网直连（最快）或 Cloudflare 免费托管（发给外地朋友）
 
+### 🔗 在线版：<https://botc-2xf.pages.dev/>
+
+不用安装、不用开电脑，浏览器直接打开就能用。手机和平板各开一个，不用连同一个 Wi-Fi。
+
 ![城镇广场](screenshots/town-square.png)
 
 ---
@@ -179,6 +183,9 @@ node server.js --port 9000   # 自定义端口
 
 - 适合：把链接发给外地朋友、不想一直开着手机上的服务
 - 不适合：断网场景、官方线上房间监听
+
+**当前线上地址：[https://botc-2xf.pages.dev/](https://botc-2xf.pages.dev/)**
+（Pages 提供页面和转发，Worker 存房间状态；`workers.dev` 域名在国内会被 DNS 污染，所以不直接用它。）
 
 详细步骤见 [cloudflare/README.md](cloudflare/README.md)。
 
